@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenx-Blocks - Modern Web Edition</title>
+    <title>Tenx-Blocks - Mobile Web Edition</title>
     <!-- CodeMirror Core & Assets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
@@ -57,18 +57,17 @@
         }
 
         .brand-logo {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             object-fit: cover;
             box-shadow: 0 1px 3px rgba(0,0,0,0.15);
         }
 
         .brand-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #1e3a8a;
-            letter-spacing: -0.3px;
         }
 
         /* Top Menu Bar */
@@ -76,17 +75,18 @@
             background-color: var(--bg-header);
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            padding: 3px 8px;
+            padding: 3px 6px;
             gap: 2px;
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .menu-item {
-            padding: 4px 10px;
+            padding: 4px 8px;
             cursor: pointer;
             color: var(--text-dark);
             border-radius: 4px;
             font-weight: 500;
-            transition: background 0.15s;
         }
 
         .menu-item:hover {
@@ -98,27 +98,27 @@
         .toolbar-area {
             background-color: #f9fafb;
             border-bottom: 1px solid var(--border-color);
-            padding: 5px 10px;
+            padding: 4px 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 4px;
+            overflow-x: auto;
+            white-space: nowrap;
         }
 
         .tool-btn {
             background: #ffffff;
             border: 1px solid #d1d5db;
             color: var(--text-dark);
-            padding: 4px 10px;
+            padding: 4px 8px;
             font-size: 11px;
             border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             font-weight: 500;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            transition: all 0.15s;
+            flex-shrink: 0;
         }
 
         .tool-btn:hover {
@@ -127,16 +127,14 @@
         }
 
         .tool-btn.btn-run { background-color: #ecfdf5; border-color: #a7f3d0; color: #047857; }
-        .tool-btn.btn-run:hover { background-color: #d1fae5; }
-
         .tool-btn.btn-buildrun { background-color: #fffbeb; border-color: #fde68a; color: #b45309; }
-        .tool-btn.btn-buildrun:hover { background-color: #fef3c7; }
 
         .toolbar-separator {
             width: 1px;
-            height: 18px;
+            height: 16px;
             background-color: var(--border-color);
-            margin: 0 4px;
+            margin: 0 2px;
+            flex-shrink: 0;
         }
 
         /* Workspace */
@@ -144,44 +142,53 @@
             display: flex;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Sidebar Tree */
+        /* Sidebar Tree (Responsive for Mobile) */
         .sidebar {
-            width: 230px;
+            width: 180px;
             background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 600px) {
+            .sidebar {
+                width: 130px;
+            }
         }
 
         .sidebar-header {
             background-color: #f9fafb;
-            padding: 8px 12px;
+            padding: 6px 8px;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-muted);
             border-bottom: 1px solid var(--border-color);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .tree-view {
-            padding: 6px 0;
+            padding: 4px 0;
             overflow-y: auto;
             flex: 1;
         }
 
         .tree-item {
-            padding: 6px 14px;
+            padding: 5px 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             color: var(--text-dark);
             border-radius: 4px;
-            margin: 1px 6px;
-            transition: background 0.15s;
+            margin: 1px 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .tree-item:hover {
@@ -189,7 +196,7 @@
             color: var(--accent-color);
         }
 
-        .tree-indent { margin-left: 15px; }
+        .tree-indent { margin-left: 10px; }
 
         /* Editor Area */
         .editor-area {
@@ -198,34 +205,29 @@
             flex-direction: column;
             background-color: #ffffff;
             position: relative;
+            overflow: hidden;
         }
 
         .tabs-header {
             background-color: #f9fafb;
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            padding-top: 4px;
-            padding-left: 6px;
+            padding-top: 3px;
+            padding-left: 4px;
             overflow-x: auto;
         }
 
         .tab {
             background-color: #f3f4f6;
             color: var(--text-muted);
-            padding: 6px 16px;
+            padding: 5px 12px;
             border: 1px solid var(--border-color);
             border-bottom: none;
-            border-radius: 6px 6px 0 0;
+            border-radius: 5px 5px 0 0;
             cursor: pointer;
             font-size: 11px;
-            margin-right: 3px;
+            margin-right: 2px;
             white-space: nowrap;
-            transition: all 0.15s;
-        }
-
-        .tab:hover {
-            background-color: #ffffff;
-            color: var(--text-dark);
         }
 
         .tab.active {
@@ -243,64 +245,64 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 15px;
             overflow-y: auto;
+            text-align: center;
         }
 
         .cb-logo-box {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .main-logo-img {
-            width: 110px;
-            height: 110px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+            margin-bottom: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .cb-logo-title {
-            font-size: 34px;
+            font-size: 26px;
             font-weight: 800;
             color: #1e3a8a;
-            letter-spacing: -0.5px;
         }
 
         .cb-logo-sub {
-            font-size: 13px;
+            font-size: 11px;
             color: var(--text-muted);
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .start-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 240px);
-            gap: 16px;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 280px;
         }
 
         .action-card {
             border: 1px solid var(--border-color);
             background: #ffffff;
             border-radius: 8px;
-            padding: 16px;
+            padding: 12px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 10px;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            text-align: left;
         }
 
         .action-card:hover {
             border-color: var(--accent-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+            background: #f8fafc;
         }
 
         .action-icon {
-            font-size: 28px;
+            font-size: 22px;
         }
 
         .action-text {
@@ -311,7 +313,7 @@
         .action-title {
             font-weight: 600;
             color: var(--accent-color);
-            font-size: 13px;
+            font-size: 12px;
         }
 
         /* CodeMirror Styling */
@@ -327,7 +329,7 @@
             background: #ffffff !important;
             color: #1f2937 !important;
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 18px !important;
+            font-size: 15px !important;
             line-height: 1.5 !important;
         }
 
@@ -345,18 +347,16 @@
             border: 1px solid var(--border-color) !important;
             border-radius: 6px !important;
             font-family: 'Consolas', monospace !important;
-            font-size: 12px !important;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-            padding: 4px !important;
+            font-size: 11px !important;
             z-index: 99999 !important;
         }
 
-        .CodeMirror-hint { color: var(--text-dark) !important; padding: 4px 8px !important; border-radius: 4px !important; }
+        .CodeMirror-hint { color: var(--text-dark) !important; padding: 4px 8px !important; }
         .CodeMirror-hint-active { background-color: var(--accent-color) !important; color: #fff !important; }
 
         /* Bottom Console Panel */
         .bottom-panel {
-            height: 130px;
+            height: 100px;
             background-color: #ffffff;
             border-top: 1px solid var(--border-color);
             display: flex;
@@ -370,8 +370,8 @@
         }
 
         .panel-tab {
-            padding: 5px 14px;
-            font-size: 11px;
+            padding: 4px 10px;
+            font-size: 10px;
             cursor: pointer;
             color: var(--text-muted);
             font-weight: 500;
@@ -388,25 +388,25 @@
             flex: 1;
             background-color: #ffffff;
             color: var(--text-dark);
-            padding: 8px 12px;
+            padding: 6px 10px;
             font-family: 'Consolas', monospace;
-            font-size: 11px;
+            font-size: 10px;
             overflow-y: auto;
             white-space: pre-wrap;
         }
 
-        /* Modern Status Bar */
+        /* Status Bar */
         .status-bar {
             background-color: var(--accent-color);
             color: #ffffff;
-            padding: 3px 12px;
+            padding: 3px 10px;
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
         }
 
-        /* Modern Wizard Modal */
+        /* Responsive Wizard Modal */
         .wizard-overlay {
             display: none;
             position: fixed;
@@ -416,10 +416,12 @@
             z-index: 99999;
             justify-content: center;
             align-items: center;
+            padding: 15px;
         }
 
         .wizard-box {
-            width: 440px;
+            width: 100%;
+            max-width: 380px;
             background: #ffffff;
             border-radius: 10px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
@@ -432,9 +434,9 @@
         .wizard-header {
             background: var(--bg-main);
             color: var(--text-dark);
-            padding: 12px 16px;
+            padding: 10px 14px;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -445,19 +447,16 @@
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             padding: 2px 6px;
-            border-radius: 4px;
         }
 
-        .wizard-header button:hover { background: var(--border-color); }
-
         .wizard-body {
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         .wizard-body label {
@@ -467,28 +466,23 @@
         }
 
         .wizard-body select, .wizard-body input {
-            padding: 8px 12px;
+            padding: 7px 10px;
             border: 1px solid var(--border-color);
             background: #ffffff;
             border-radius: 6px;
             outline: none;
-            font-size: 12px;
-            transition: border-color 0.15s;
-        }
-
-        .wizard-body select:focus, .wizard-body input:focus {
-            border-color: var(--accent-color);
+            font-size: 11px;
         }
 
         .path-group {
             display: flex;
-            gap: 6px;
+            gap: 5px;
         }
 
         .path-group input { flex: 1; }
 
         .btn-browse {
-            padding: 0 14px;
+            padding: 0 10px;
             background: var(--bg-main);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -497,19 +491,17 @@
             color: var(--text-dark);
         }
 
-        .btn-browse:hover { background: #e5e7eb; }
-
         .wizard-footer {
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: var(--bg-main);
             display: flex;
             justify-content: flex-end;
-            gap: 8px;
+            gap: 6px;
             border-top: 1px solid var(--border-color);
         }
 
         .wizard-footer button {
-            padding: 6px 16px;
+            padding: 5px 14px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
@@ -528,18 +520,15 @@
             color: white;
         }
 
-        .btn-continue:hover { background: var(--accent-hover); }
-
         /* CMD Modal */
         .cmd-modal {
             display: none;
             position: fixed;
-            top: 20%; left: 25%;
-            width: 680px; height: 420px;
+            top: 15%; left: 5%; width: 90%; height: 60%;
             background-color: #0f172a;
             color: #f8fafc;
             border: 1px solid #334155;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
             z-index: 99999;
             flex-direction: column;
             font-family: 'Consolas', monospace;
@@ -550,21 +539,20 @@
         .cmd-header {
             background-color: #1e293b;
             color: #f8fafc;
-            padding: 8px 12px;
-            font-size: 12px;
+            padding: 6px 10px;
+            font-size: 11px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #334155;
-            cursor: move;
         }
 
         .cmd-body {
             flex: 1;
-            padding: 14px;
+            padding: 10px;
             overflow-y: auto;
-            font-size: 14px !important;
-            line-height: 1.6;
+            font-size: 12px !important;
+            line-height: 1.5;
             color: #f8fafc;
         }
     </style>
@@ -587,7 +575,6 @@
         <div class="menu-item" onclick="buildCode()">Build</div>
         <div class="menu-item" onclick="runCode()">Debug</div>
         <div class="menu-item">Tools</div>
-        <div class="menu-item" onclick="alert('Tenx-Blocks IDE for Applied Technology School')">Help</div>
     </div>
 
     <!-- Toolbar Area -->
@@ -600,7 +587,7 @@
         <button class="tool-btn btn-run" onclick="runCode()">▶ Run</button>
         <button class="tool-btn btn-buildrun" onclick="buildAndRun()">⚙ Build & Run</button>
         <div class="toolbar-separator"></div>
-        <button class="tool-btn" onclick="clearConsole()">🧹 Clear Log</button>
+        <button class="tool-btn" onclick="clearConsole()">🧹 Clear</button>
     </div>
 
     <!-- Workspace -->
@@ -624,7 +611,7 @@
                 <div class="cb-logo-box">
                     <img src="22934.jpg" alt="Tenx-Plus Logo" class="main-logo-img">
                     <div class="cb-logo-title">Tenx-Blocks</div>
-                    <div class="cb-logo-sub">Applied Technology School Web IDE</div>
+                    <div class="cb-logo-sub">Mobile Web IDE Edition</div>
                 </div>
 
                 <div class="start-actions">
@@ -632,7 +619,7 @@
                         <div class="action-icon">📁</div>
                         <div class="action-text">
                             <span class="action-title">Create a new file</span>
-                            <span style="color:#6b7280;">Configure file & language</span>
+                            <span style="color:#6b7280; font-size:10px;">Configure file & language</span>
                         </div>
                     </div>
 
@@ -640,7 +627,7 @@
                         <div class="action-icon">📂</div>
                         <div class="action-text">
                             <span class="action-title">Open project wizard</span>
-                            <span style="color:#6b7280;">Set workspace directory</span>
+                            <span style="color:#6b7280; font-size:10px;">Set workspace directory</span>
                         </div>
                     </div>
                 </div>
@@ -659,20 +646,20 @@
             <div class="panel-tab active">Build log</div>
             <div class="panel-tab">Build messages</div>
         </div>
-        <div class="console-output" id="consoleOutput">Tenx-Blocks IDE initialized successfully. Ready.</div>
+        <div class="console-output" id="consoleOutput">Tenx-Blocks Mobile IDE ready.</div>
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar">
-        <div id="statusText">Status: Ready</div>
-        <div id="zoomIndicator">Zoom: 100% (18px) | GNU GCC Compiler</div>
+        <div id="statusText">Ready</div>
+        <div id="zoomIndicator">GCC Compiler</div>
     </div>
 
     <!-- New File Wizard -->
     <div class="wizard-overlay" id="fileWizardModal">
         <div class="wizard-box">
             <div class="wizard-header">
-                <span>Tenx-Blocks - New File Wizard</span>
+                <span>New File Wizard</span>
                 <button onclick="closeWizard()">✕</button>
             </div>
             <div class="wizard-body">
@@ -704,8 +691,8 @@
     <!-- CMD Modal -->
     <div class="cmd-modal" id="cmdModal">
         <div class="cmd-header" id="cmdHeader">
-            <span>C:\Windows\system32\cmd.exe - TenxProject.exe</span>
-            <button onclick="document.getElementById('cmdModal').style.display='none'" style="background:#ef4444; color:white; border:none; padding: 2px 8px; border-radius: 4px; cursor:pointer;">X</button>
+            <span>Terminal - TenxProject.exe</span>
+            <button onclick="document.getElementById('cmdModal').style.display='none'" style="background:#ef4444; color:white; border:none; padding: 2px 6px; border-radius: 3px; cursor:pointer;">X</button>
         </div>
         <div class="cmd-body" id="cmdBody"></div>
     </div>
@@ -750,25 +737,6 @@
         editor.on("inputRead", function(cm, change) {
             if (!cm.state.completionActive && change.text[0].match(/[\w#<"]/)) {
                 CodeMirror.showHint(cm, CodeMirror.hint.clike, {completeSingle: false});
-            }
-        });
-
-        // Zoom Ctrl + Mouse Wheel (Cap at 160% font size)
-        let currentFontSize = 18;
-        const cmWrapper = editor.getWrapperElement();
-        cmWrapper.addEventListener('wheel', function(e) {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                if (e.deltaY < 0) {
-                    if (currentFontSize < 30) currentFontSize += 1;
-                } else {
-                    if (currentFontSize > 12) currentFontSize -= 1;
-                }
-                cmWrapper.style.fontSize = currentFontSize + 'px';
-                editor.refresh();
-                
-                let zoomPercent = Math.round((currentFontSize / 18) * 100);
-                document.getElementById('zoomIndicator').innerText = `Zoom: ${zoomPercent}% (${currentFontSize}px) | GNU GCC Compiler`;
             }
         });
 
@@ -867,7 +835,6 @@
             if (!document.getElementById(`tree-${fileName}`)) {
                 const newTreeNode = document.createElement('div');
                 newTreeNode.className = 'tree-item tree-indent';
-                newTreeNode.style.marginLeft = '30px';
                 newTreeNode.id = `tree-${fileName}`;
                 newTreeNode.innerHTML = `📄 ${fileName}`;
                 newTreeNode.onclick = () => openFile(fileName);
@@ -885,7 +852,7 @@
             }
 
             openFile(fileName);
-            logConsole(`Created empty file '${fileName}' in path [${filePath}].`);
+            logConsole(`Created file '${fileName}' successfully.`);
         }
 
         function logConsole(msg) {
@@ -904,8 +871,8 @@
         }
 
         function buildCode() {
-            logConsole(`-------------- Build: Debug in TenxProject --------------`);
-            logConsole(`Target compiled with 0 errors.`);
+            logConsole(`-------------- Build: Debug --------------`);
+            logConsole(`Compiled with 0 errors.`);
         }
 
         function runCode() {
@@ -917,7 +884,7 @@
             const cmdModal = document.getElementById('cmdModal');
             const cmdBody = document.getElementById('cmdBody');
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> executing ${activeFileName}...\n<br>`;
+            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nExecuting ${activeFileName}...\n<br>`;
 
             setTimeout(() => {
                 const codeText = editor.getValue();
@@ -946,22 +913,6 @@
             buildCode();
             setTimeout(runCode, 300);
         }
-
-        // Draggable CMD
-        const cmdModal = document.getElementById('cmdModal');
-        const cmdHeader = document.getElementById('cmdHeader');
-        let isDragging = false, startX, startY;
-        cmdHeader.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - cmdModal.offsetLeft;
-            startY = e.clientY - cmdModal.offsetTop;
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            cmdModal.style.left = (e.clientX - startX) + 'px';
-            cmdModal.style.top = (e.clientY - startY) + 'px';
-        });
-        document.addEventListener('mouseup', () => { isDragging = false; });
     </script>
 </body>
 </html>
