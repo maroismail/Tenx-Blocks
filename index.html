@@ -471,7 +471,7 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 9999999; flex-direction: column; font-family: 'Consolas', monospace; border-radius: 8px; overflow: hidden;
         }
         .cmd-header { background-color: #1e293b; color: #f8fafc; padding: 10px 12px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; cursor: move; touch-action: none; }
-        .cmd-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 13px !important; line-height: 1.6; color: #f8fafc; }
+        .cmd-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 13px !important; line-height: 1.6; color: #f8fafc; white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -629,6 +629,10 @@
         let lastBuildErrors = [];
         let activePanelTab = 0;
 
+        // بيانات الاعتماد الخاصة بـ JDoodle API
+        const JDOODLE_CLIENT_ID = "Dae9bbeaba724e3ca66c6c560121bd35";
+        const JDOODLE_CLIENT_SECRET = "43c9d861929cd93f1ecfcf737ac2829f4d483a3a183dce4dd8bb828c356e3d2a";
+
         const cKeywords = [
             "#include <stdio.h>",
             "#include <stdlib.h>",
@@ -716,7 +720,7 @@
             }
         });
 
-        // 📱 نظام رصد مزدوج لتثبيت شريط الأقواس فوق كيبورد التطبيق والموبايل لحظياً
+        // نظام رصد مزدوج لتثبيت شريط الأقواس فوق كيبورد التطبيق والموبايل لحظياً
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
             if (!activeFileName || symbolsBar.style.display !== 'flex') return;
@@ -726,7 +730,6 @@
                 const bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
                 symbolsBar.style.bottom = bottomOffset + 'px';
             } else {
-                // توافق تام لو الـ WebView مش بيدعم الـ visualViewport
                 const windowHeightDiff = window.outerHeight - window.innerHeight;
                 if (windowHeightDiff > 150) {
                     symbolsBar.style.bottom = '0px';
@@ -936,34 +939,87 @@
                     lastBuildErrors.push(`[Error] Brace mismatch: opened { (${openBraces}), closed } (${closeBraces})`);
                 }
             }
-            logConsole(lastBuildErrors.length === 0 ? "Target compiled with 0 errors." : `Target compiled with ${lastBuildErrors.length} message(s).`);
+            logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile on server." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        function runCode() {
+        // تنفيذ الكود فعلياً عبر JDoodle API
+        async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
                 return;
             }
 
+            const codeText = editor.getValue();
+            if (!codeText.trim()) {
+                alert("الملف فارغ! اكتب كود C أولاً.");
+                return;
+            }
+
+            // إذا كان الكود يحتوي على scanf، نطلب المدخلات من المستخدم
+            let userStdin = "";
+            if (codeText.includes("scanf")) {
+                let inputPrompt = prompt("البرنامج يحتوي على إدخال بيانات (scanf).\nاكتب المدخلات هنا (افصل بينها بمسافة أو سطر جديد):", "");
+                if (inputPrompt !== null) {
+                    userStdin = inputPrompt;
+                }
+            }
+
             const cmdModal = document.getElementById('cmdModal');
             const cmdBody = document.getElementById('cmdBody');
+            const statusText = document.getElementById('statusText');
+
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<br>`;
+            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Compiling & executing via GCC...</span>`;
+            statusText.innerText = "Status: Compiling...";
+            logConsole(`Sending '${activeFileName}' to JDoodle GCC Compiler...`);
 
-            setTimeout(() => {
-                const codeText = editor.getValue();
-                let output = "Process returned 0.";
-                let match = codeText.match(/printf\s*\(\s*"([^"]*)"\s*\);?/);
-                if (match) output = match[1];
+            try {
+                const response = await fetch("https://api.jdoodle.com/v1/execute", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        clientId: JDOODLE_CLIENT_ID,
+                        clientSecret: JDOODLE_CLIENT_SECRET,
+                        script: codeText,
+                        language: "c",
+                        versionIndex: "5",
+                        stdin: userStdin
+                    })
+                });
 
-                cmdBody.innerHTML += `<span style="color: #38bdf8; font-weight: bold;">${output}</span><br>`;
-                cmdBody.innerHTML += `<br>Process returned 0 (0x0)   execution time : 0.012 s<br>Press any key to continue . . .`;
-            }, 300);
+                const result = await response.json();
+
+                if (response.ok && result.output !== undefined) {
+                    const safeOutput = result.output.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const isError = result.output.toLowerCase().includes("error:");
+                    const outputColor = isError ? "#f87171" : "#38bdf8";
+
+                    cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n\n`;
+                    cmdBody.innerHTML += `<span style="color: ${outputColor}; font-weight: bold;">${safeOutput}</span>\n\n`;
+                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Process returned ${result.statusCode || 0}   execution time : ${result.cpuTime || "0.01"} s | memory : ${result.memory || "0"} KB</span>\nPress any key to continue . . .`;
+
+                    logConsole(isError ? "Compilation failed. Check CMD output for details." : `Execution finished successfully in ${result.cpuTime || "0.01"}s.`);
+                    if (isError) {
+                        lastBuildErrors.push(result.output);
+                    }
+                } else {
+                    const errMsg = result.error || "Unknown server error";
+                    cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">API Error: ${errMsg}</span>`;
+                    logConsole(`API Error: ${errMsg}`);
+                }
+            } catch (err) {
+                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Network / CORS Error: ${err.message}\nتأكد من الاتصال بالإنترنت أو تشغيل التطبيق من بيئة تدعم الاتصال المباشر بالـ API.</span>`;
+                logConsole(`Connection Error: ${err.message}`);
+            } finally {
+                statusText.innerText = "Status: Ready";
+            }
         }
 
         function buildAndRun() {
             buildCode();
-            setTimeout(runCode, 300);
+            runCode();
         }
 
         // Draggable CMD (Mouse & Touch Support)
