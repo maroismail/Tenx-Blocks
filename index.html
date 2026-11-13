@@ -2,17 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tenx-Blocks - Mobile Web Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tenx-Blocks - C Language Edition</title>
     <!-- CodeMirror Core & Assets -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 
@@ -26,6 +23,21 @@
             --border-color: #e5e7eb;
             --text-dark: #1f2937;
             --text-muted: #6b7280;
+            --console-bg: #ffffff;
+            --console-text: #1f2937;
+        }
+
+        body.dark-mode {
+            --bg-main: #0f172a;
+            --bg-sidebar: #1e293b;
+            --bg-header: #1e293b;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #334155;
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --console-bg: #090d16;
+            --console-text: #38bdf8;
         }
 
         * {
@@ -33,8 +45,8 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            user-select: none;
             font-size: 11px;
+            touch-action: manipulation;
         }
 
         body {
@@ -44,30 +56,36 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background 0.2s, color 0.2s;
         }
 
         /* Top Brand Header */
         .brand-header {
-            background-color: #ffffff;
+            background-color: var(--bg-header);
             border-bottom: 1px solid var(--border-color);
             padding: 6px 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .brand-logo {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            object-fit: cover;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            justify-content: space-between;
         }
 
         .brand-title {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
-            color: #1e3a8a;
+            color: var(--accent-color);
+            letter-spacing: -0.3px;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         /* Top Menu Bar */
@@ -75,55 +93,57 @@
             background-color: var(--bg-header);
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            padding: 3px 6px;
+            padding: 3px 8px;
             gap: 2px;
             overflow-x: auto;
-            white-space: nowrap;
         }
 
         .menu-item {
-            padding: 4px 8px;
+            padding: 5px 10px;
             cursor: pointer;
             color: var(--text-dark);
             border-radius: 4px;
             font-weight: 500;
+            white-space: nowrap;
+            transition: background 0.15s;
         }
 
         .menu-item:hover {
-            background-color: #eff6ff;
+            background-color: var(--border-color);
             color: var(--accent-color);
         }
 
         /* Toolbar Area */
         .toolbar-area {
-            background-color: #f9fafb;
+            background-color: var(--bg-header);
             border-bottom: 1px solid var(--border-color);
-            padding: 4px 8px;
+            padding: 5px 10px;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             overflow-x: auto;
-            white-space: nowrap;
+            flex-wrap: nowrap;
         }
 
         .tool-btn {
-            background: #ffffff;
-            border: 1px solid #d1d5db;
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border-color);
             color: var(--text-dark);
-            padding: 4px 8px;
+            padding: 5px 10px;
             font-size: 11px;
             border-radius: 5px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             font-weight: 500;
-            flex-shrink: 0;
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.15s;
         }
 
         .tool-btn:hover {
-            background-color: #f3f4f6;
-            border-color: #9ca3af;
+            border-color: var(--accent-color);
         }
 
         .tool-btn.btn-run { background-color: #ecfdf5; border-color: #a7f3d0; color: #047857; }
@@ -131,254 +151,209 @@
 
         .toolbar-separator {
             width: 1px;
-            height: 16px;
+            height: 18px;
             background-color: var(--border-color);
             margin: 0 2px;
             flex-shrink: 0;
         }
 
-        /* Workspace */
+        /* Workspace Layout - Full Width */
         .workspace {
             display: flex;
             flex: 1;
             overflow: hidden;
             position: relative;
+            width: 100%;
         }
-
-        /* Sidebar Tree (Responsive for Mobile) */
-        .sidebar {
-            width: 180px;
-            background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        @media (max-width: 600px) {
-            .sidebar {
-                width: 130px;
-            }
-        }
-
-        .sidebar-header {
-            background-color: #f9fafb;
-            padding: 6px 8px;
-            font-weight: 600;
-            font-size: 10px;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-color);
-            text-transform: uppercase;
-        }
-
-        .tree-view {
-            padding: 4px 0;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .tree-item {
-            padding: 5px 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--text-dark);
-            border-radius: 4px;
-            margin: 1px 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .tree-item:hover {
-            background-color: #eff6ff;
-            color: var(--accent-color);
-        }
-
-        .tree-indent { margin-left: 10px; }
 
         /* Editor Area */
         .editor-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: #ffffff;
+            background-color: var(--bg-main);
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
 
         .tabs-header {
-            background-color: #f9fafb;
+            background-color: var(--bg-header);
             display: flex;
             border-bottom: 1px solid var(--border-color);
-            padding-top: 3px;
-            padding-left: 4px;
+            padding-top: 4px;
+            padding-left: 6px;
             overflow-x: auto;
         }
 
         .tab {
-            background-color: #f3f4f6;
+            background-color: var(--bg-main);
             color: var(--text-muted);
-            padding: 5px 12px;
+            padding: 6px 12px;
             border: 1px solid var(--border-color);
             border-bottom: none;
-            border-radius: 5px 5px 0 0;
+            border-radius: 6px 6px 0 0;
             cursor: pointer;
             font-size: 11px;
-            margin-right: 2px;
+            margin-right: 3px;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
+        .tab:hover { color: var(--text-dark); }
         .tab.active {
-            background-color: #ffffff;
+            background-color: var(--bg-sidebar);
             color: var(--accent-color);
             border-top: 2px solid var(--accent-color);
             font-weight: 600;
         }
 
+        .tab-close {
+            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .tab-close:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
         /* Start Page */
         .start-page {
             flex: 1;
-            background: #ffffff;
+            background: var(--bg-sidebar);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 20px;
             overflow-y: auto;
-            text-align: center;
+            width: 100%;
         }
 
-        .cb-logo-box {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .main-logo-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .cb-logo-title {
-            font-size: 26px;
-            font-weight: 800;
-            color: #1e3a8a;
-        }
-
-        .cb-logo-sub {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
+        .cb-logo-box { text-align: center; margin-bottom: 25px; }
+        .cb-logo-title { font-size: 32px; font-weight: 800; color: var(--accent-color); letter-spacing: -0.5px; }
+        .cb-logo-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
         .start-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
             width: 100%;
-            max-width: 280px;
+            max-width: 500px;
         }
 
         .action-card {
             border: 1px solid var(--border-color);
-            background: #ffffff;
+            background: var(--bg-sidebar);
             border-radius: 8px;
-            padding: 12px;
+            padding: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-            text-align: left;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
         }
 
-        .action-card:hover {
-            border-color: var(--accent-color);
-            background: #f8fafc;
-        }
+        .action-card:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+        .action-icon { font-size: 26px; }
+        .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        .action-icon {
-            font-size: 22px;
-        }
-
-        .action-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .action-title {
-            font-weight: 600;
-            color: var(--accent-color);
-            font-size: 12px;
-        }
-
-        /* CodeMirror Styling */
+        /* CodeMirror Custom Styling */
         .editor-wrapper {
             flex: 1;
             display: none;
             flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
         }
 
         .CodeMirror {
             flex: 1;
-            height: auto !important;
-            background: #ffffff !important;
-            color: #1f2937 !important;
+            height: 100% !important;
+            background: var(--bg-sidebar) !important;
+            color: var(--text-dark) !important;
             font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 15px !important;
+            font-size: 16px;
             line-height: 1.5 !important;
+            width: 100% !important;
         }
 
-        .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
-        .cm-s-default .cm-def { color: #111827 !important; font-weight: bold; }
-        .cm-s-default .cm-variable { color: #1f2937 !important; }
-        .cm-s-default .cm-variable-2 { color: #0d9488 !important; }
-        .cm-s-default .cm-string { color: #d97706 !important; }
-        .cm-s-default .cm-number { color: #16a34a !important; }
-        .cm-s-default .cm-comment { color: #9ca3af !important; font-style: italic; }
-        .cm-s-default .cm-meta { color: #dc2626 !important; font-weight: bold; }
+        body.dark-mode .CodeMirror-gutters {
+            background: #1e293b !important;
+            border-right: 1px solid #334155 !important;
+        }
 
+        /* شريط الأقواس والتفاعل مع الكيبورد (مثبت بذكاء فوق كيبورد الموبايل) */
+        .keyboard-symbols-bar {
+            display: none;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-header);
+            border-top: 1px solid var(--border-color);
+            padding: 8px 10px;
+            gap: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+            z-index: 99999;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .symbol-chip {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 6px 12px;
+            font-size: 14px;
+            font-family: 'Consolas', monospace;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .symbol-chip:active { background-color: var(--accent-color); color: #fff; }
+
+        /* CodeMirror Hints (تلوين وتنسيق هينتات لغة C لتتطابق مع الثيم) */
         .CodeMirror-hints {
-            background: #ffffff !important;
+            background: var(--bg-sidebar) !important;
             border: 1px solid var(--border-color) !important;
             border-radius: 6px !important;
             font-family: 'Consolas', monospace !important;
-            font-size: 11px !important;
-            z-index: 99999 !important;
+            font-size: 13px !important;
+            z-index: 999999 !important;
         }
-
-        .CodeMirror-hint { color: var(--text-dark) !important; padding: 4px 8px !important; }
+        .CodeMirror-hint { color: var(--text-dark) !important; padding: 6px 10px !important; }
         .CodeMirror-hint-active { background-color: var(--accent-color) !important; color: #fff !important; }
 
-        /* Bottom Console Panel */
+        /* Console Panel */
         .bottom-panel {
-            height: 100px;
-            background-color: #ffffff;
+            height: 110px;
+            background-color: var(--bg-header);
             border-top: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
         }
 
         .panel-tabs {
-            background-color: #f9fafb;
+            background-color: var(--bg-main);
             display: flex;
             border-bottom: 1px solid var(--border-color);
         }
 
         .panel-tab {
-            padding: 4px 10px;
-            font-size: 10px;
+            padding: 5px 14px;
+            font-size: 11px;
             cursor: pointer;
             color: var(--text-muted);
             font-weight: 500;
         }
 
         .panel-tab.active {
-            background-color: #ffffff;
+            background-color: var(--bg-sidebar);
             color: var(--accent-color);
             border-top: 2px solid var(--accent-color);
             font-weight: 600;
@@ -386,11 +361,11 @@
 
         .console-output {
             flex: 1;
-            background-color: #ffffff;
-            color: var(--text-dark);
-            padding: 6px 10px;
+            background-color: var(--console-bg);
+            color: var(--console-text);
+            padding: 8px 12px;
             font-family: 'Consolas', monospace;
-            font-size: 10px;
+            font-size: 11px;
             overflow-y: auto;
             white-space: pre-wrap;
         }
@@ -399,208 +374,103 @@
         .status-bar {
             background-color: var(--accent-color);
             color: #ffffff;
-            padding: 3px 10px;
+            padding: 3px 12px;
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 500;
         }
 
-        /* Responsive Wizard Modal */
+        /* Modals */
         .wizard-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(2px);
-            z-index: 99999;
+            z-index: 999999;
             justify-content: center;
             align-items: center;
-            padding: 15px;
         }
 
         .wizard-box {
-            width: 100%;
-            max-width: 380px;
-            background: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
+            width: 90%; max-width: 440px;
+            background: var(--bg-sidebar); color: var(--text-dark);
+            border-radius: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; border: 1px solid var(--border-color); overflow: hidden;
         }
 
         .wizard-header {
-            background: var(--bg-main);
-            color: var(--text-dark);
-            padding: 10px 14px;
-            font-weight: 600;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-header); padding: 12px 16px; font-weight: 600; font-size: 12px;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color);
         }
+        .wizard-header button { background: transparent; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; }
 
-        .wizard-header button {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 14px;
-            cursor: pointer;
-            padding: 2px 6px;
-        }
-
-        .wizard-body {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .wizard-body label {
-            font-weight: 600;
-            color: var(--text-dark);
-            font-size: 11px;
-        }
-
+        .wizard-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .wizard-body label { font-weight: 600; font-size: 11px; }
         .wizard-body select, .wizard-body input {
-            padding: 7px 10px;
-            border: 1px solid var(--border-color);
-            background: #ffffff;
-            border-radius: 6px;
-            outline: none;
-            font-size: 11px;
+            padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-dark);
+            border-radius: 6px; outline: none; font-size: 12px;
         }
 
-        .path-group {
-            display: flex;
-            gap: 5px;
-        }
-
+        .path-group { display: flex; gap: 6px; }
         .path-group input { flex: 1; }
-
-        .btn-browse {
-            padding: 0 10px;
-            background: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
+        .btn-browse { padding: 0 14px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; color: var(--text-dark); font-weight: 600; }
 
         .wizard-footer {
-            padding: 10px 16px;
-            background: var(--bg-main);
-            display: flex;
-            justify-content: flex-end;
-            gap: 6px;
-            border-top: 1px solid var(--border-color);
+            padding: 12px 18px; background: var(--bg-header); display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color);
         }
-
-        .wizard-footer button {
-            padding: 5px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 11px;
-        }
-
-        .btn-cancel {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            color: var(--text-dark);
-        }
-
-        .btn-continue {
-            background: var(--accent-color);
-            border: 1px solid var(--accent-color);
-            color: white;
-        }
+        .wizard-footer button { padding: 6px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; border: 1px solid var(--border-color); }
+        .btn-cancel { background: var(--bg-sidebar); color: var(--text-dark); }
+        .btn-continue { background: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .btn-continue:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* CMD Modal */
         .cmd-modal {
-            display: none;
-            position: fixed;
-            top: 15%; left: 5%; width: 90%; height: 60%;
-            background-color: #0f172a;
-            color: #f8fafc;
-            border: 1px solid #334155;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            z-index: 99999;
-            flex-direction: column;
-            font-family: 'Consolas', monospace;
-            border-radius: 8px;
-            overflow: hidden;
+            display: none; position: fixed; top: 15%; left: 5%; width: 90%; height: 350px; max-width: 680px;
+            background-color: #0f172a; color: #f8fafc; border: 1px solid #334155;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 999999; flex-direction: column; font-family: 'Consolas', monospace; border-radius: 8px; overflow: hidden;
         }
-
-        .cmd-header {
-            background-color: #1e293b;
-            color: #f8fafc;
-            padding: 6px 10px;
-            font-size: 11px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-        }
-
-        .cmd-body {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            font-size: 12px !important;
-            line-height: 1.5;
-            color: #f8fafc;
-        }
+        .cmd-header { background-color: #1e293b; color: #f8fafc; padding: 8px 12px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; cursor: move; touch-action: none; }
+        .cmd-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 13px !important; line-height: 1.6; color: #f8fafc; }
     </style>
 </head>
 <body>
 
     <!-- Brand Header -->
     <div class="brand-header">
-        <img src="22934.jpg" alt="Tenx-Plus Logo" class="brand-logo">
-        <div class="brand-title">Tenx-Blocks IDE</div>
+        <div class="brand-title">Tenx-Blocks - C Language Edition</div>
+        <button class="theme-toggle-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
     </div>
 
     <!-- Top Menu Bar -->
     <div class="menu-bar">
         <div class="menu-item" onclick="startNewFileWizard()">File</div>
         <div class="menu-item">Edit</div>
-        <div class="menu-item">View</div>
-        <div class="menu-item">Search</div>
         <div class="menu-item" onclick="startNewFileWizard()">Project</div>
         <div class="menu-item" onclick="buildCode()">Build</div>
         <div class="menu-item" onclick="runCode()">Debug</div>
-        <div class="menu-item">Tools</div>
+        <div class="menu-item" onclick="alert('Tenx-Blocks IDE for C Language - Applied Technology School')">Help</div>
     </div>
 
     <!-- Toolbar Area -->
     <div class="toolbar-area">
         <button class="tool-btn" onclick="startNewFileWizard()">📄 New</button>
         <button class="tool-btn" onclick="saveFile()">💾 Save</button>
+        <button class="tool-btn" onclick="exportFile()">📥 Export</button>
         <div class="toolbar-separator"></div>
 
         <button class="tool-btn" onclick="buildCode()">🔨 Build</button>
         <button class="tool-btn btn-run" onclick="runCode()">▶ Run</button>
         <button class="tool-btn btn-buildrun" onclick="buildAndRun()">⚙ Build & Run</button>
         <div class="toolbar-separator"></div>
-        <button class="tool-btn" onclick="clearConsole()">🧹 Clear</button>
+
+        <button class="tool-btn" onclick="triggerAutoComplete()">💡 Hint</button>
+        <button class="tool-btn" onclick="clearConsole()">🧹 Clear Log</button>
     </div>
 
-    <!-- Workspace -->
+    <!-- Workspace (Full Width Editor) -->
     <div class="workspace">
-        <div class="sidebar">
-            <div class="sidebar-header">Management</div>
-            <div class="tree-view">
-                <div class="tree-item" onclick="showStartPage()">📁 Workspace</div>
-                <div class="tree-item tree-indent">📦 TenxProject</div>
-                <div id="projectFileList"></div>
-            </div>
-        </div>
-
         <div class="editor-area">
             <div class="tabs-header" id="tabsHeader">
                 <div class="tab active" id="tab-start" onclick="showStartPage()">Start here</div>
@@ -609,25 +479,23 @@
             <!-- Start Here Page -->
             <div class="start-page" id="startPage">
                 <div class="cb-logo-box">
-                    <img src="22934.jpg" alt="Tenx-Plus Logo" class="main-logo-img">
-                    <div class="cb-logo-title">Tenx-Blocks</div>
-                    <div class="cb-logo-sub">Mobile Web IDE Edition</div>
+                    <div class="cb-logo-title">Tenx-Blocks (C)</div>
+                    <div class="cb-logo-sub">C Language IDE for Applied Technology School</div>
                 </div>
 
                 <div class="start-actions">
                     <div class="action-card" onclick="startNewFileWizard()">
                         <div class="action-icon">📁</div>
-                        <div class="action-text">
-                            <span class="action-title">Create a new file</span>
-                            <span style="color:#6b7280; font-size:10px;">Configure file & language</span>
+                        <div>
+                            <div class="action-title">Create a new C file</div>
+                            <div style="color:var(--text-muted); font-size:10px;">Configure .c file</div>
                         </div>
                     </div>
-
                     <div class="action-card" onclick="startNewFileWizard()">
                         <div class="action-icon">📂</div>
-                        <div class="action-text">
-                            <span class="action-title">Open project wizard</span>
-                            <span style="color:#6b7280; font-size:10px;">Set workspace directory</span>
+                        <div>
+                            <div class="action-title">Open project wizard</div>
+                            <div style="color:var(--text-muted); font-size:10px;">Set workspace directory</div>
                         </div>
                     </div>
                 </div>
@@ -636,6 +504,28 @@
             <!-- Editor Wrapper -->
             <div class="editor-wrapper" id="editorWrapper">
                 <textarea id="codeEditor"></textarea>
+                
+                <!-- شريط الأقواس والتفاعل مع الكيبورد (متحرك ومثبت بذكاء فوق كيبورد الموبايل) -->
+                <div class="keyboard-symbols-bar" id="keyboardSymbolsBar">
+                    <div class="symbol-chip" onclick="insertSymbol('{ }')">{ }</div>
+                    <div class="symbol-chip" onclick="insertSymbol('( )')">( )</div>
+                    <div class="symbol-chip" onclick="insertSymbol('[ ]')">[ ]</div>
+                    <div class="symbol-chip" onclick="insertSymbol(';')">;</div>
+                    <div class="symbol-chip" onclick="insertSymbol('&quot; &quot;')">" "</div>
+                    <div class="symbol-chip" onclick="insertSymbol(&quot;' '&quot;)">' '</div>
+                    <div class="symbol-chip" onclick="insertSymbol('#')">#</div>
+                    <div class="symbol-chip" onclick="insertSymbol('<')">&lt;</div>
+                    <div class="symbol-chip" onclick="insertSymbol('>')">&gt;</div>
+                    <div class="symbol-chip" onclick="insertSymbol('&amp;')">&amp;</div>
+                    <div class="symbol-chip" onclick="insertSymbol('*')">*</div>
+                    <div class="symbol-chip" onclick="insertSymbol('|')">|</div>
+                    <div class="symbol-chip" onclick="insertSymbol('=')">=</div>
+                    <div class="symbol-chip" onclick="insertSymbol('+')">+</div>
+                    <div class="symbol-chip" onclick="insertSymbol('-')">-</div>
+                    <div class="symbol-chip" onclick="insertSymbol('/')">/</div>
+                    <div class="symbol-chip" onclick="insertSymbol('%')">%</div>
+                    <div class="symbol-chip" onclick="insertSymbol(',')">,</div>
+                </div>
             </div>
         </div>
     </div>
@@ -643,56 +533,53 @@
     <!-- Bottom Console Panel -->
     <div class="bottom-panel">
         <div class="panel-tabs">
-            <div class="panel-tab active">Build log</div>
-            <div class="panel-tab">Build messages</div>
+            <div class="panel-tab active" onclick="switchPanelTab(0)" id="panelTab0">Build log</div>
+            <div class="panel-tab" onclick="switchPanelTab(1)" id="panelTab1">Build messages</div>
         </div>
-        <div class="console-output" id="consoleOutput">Tenx-Blocks Mobile IDE ready.</div>
+        <div class="console-output" id="consoleOutput">Tenx-Blocks C Edition initialized successfully. Ready.</div>
     </div>
 
     <!-- Status Bar -->
     <div class="status-bar">
-        <div id="statusText">Ready</div>
-        <div id="zoomIndicator">GCC Compiler</div>
+        <div id="statusText">Status: Ready</div>
+        <div id="zoomIndicator">GNU GCC Compiler (C Language)</div>
     </div>
 
-    <!-- New File Wizard -->
+    <!-- New File Wizard Modal -->
     <div class="wizard-overlay" id="fileWizardModal">
-        <div class="wizard-box">
+        <div class="wizard-box" onclick="event.stopPropagation()">
             <div class="wizard-header">
-                <span>New File Wizard</span>
+                <span>Tenx-Blocks - New C File</span>
                 <button onclick="closeWizard()">✕</button>
             </div>
             <div class="wizard-body">
-                <label>1. Programming Language:</label>
-                <select id="wizardLang" onchange="updateDefaultFileName()">
-                    <option value="cpp">C++ (.cpp)</option>
-                    <option value="c">C (.c)</option>
-                    <option value="javascript">JavaScript (.js)</option>
-                    <option value="html">HTML (.html)</option>
-                    <option value="css">CSS (.css)</option>
+                <label>1. Language:</label>
+                <select id="wizardLang" onchange="validateWizardForm()">
+                    <option value="none">-- Select Language --</option>
+                    <option value="c" selected>C Language (.c)</option>
                 </select>
 
                 <label>2. File Name:</label>
-                <input type="text" id="wizardName" value="main.cpp">
+                <input type="text" id="wizardName" value="" placeholder="e.g. main.c" oninput="validateWizardForm()">
 
                 <label>3. Save Path / Directory:</label>
                 <div class="path-group">
-                    <input type="text" id="wizardPath" value="C:\TenxProject" readonly>
+                    <input type="text" id="wizardPath" value="" placeholder="e.g. C:\TenxProject" oninput="validateWizardForm()">
                     <button class="btn-browse" onclick="browseFolder()">...</button>
                 </div>
             </div>
             <div class="wizard-footer">
                 <button class="btn-cancel" onclick="closeWizard()">Cancel</button>
-                <button class="btn-continue" onclick="confirmNewFile()">Continue ➔</button>
+                <button class="btn-continue" id="btnContinueWizard" onclick="confirmNewFile()" disabled>Continue ➔</button>
             </div>
         </div>
     </div>
 
-    <!-- CMD Modal -->
+    <!-- CMD Modal (Draggable Mouse & Touch) -->
     <div class="cmd-modal" id="cmdModal">
         <div class="cmd-header" id="cmdHeader">
-            <span>Terminal - TenxProject.exe</span>
-            <button onclick="document.getElementById('cmdModal').style.display='none'" style="background:#ef4444; color:white; border:none; padding: 2px 6px; border-radius: 3px; cursor:pointer;">X</button>
+            <span>C:\Windows\system32\cmd.exe - TenxProject.exe</span>
+            <button onclick="document.getElementById('cmdModal').style.display='none'" style="background:#ef4444; color:white; border:none; padding: 2px 8px; border-radius: 4px; cursor:pointer;">X</button>
         </div>
         <div class="cmd-body" id="cmdBody"></div>
     </div>
@@ -700,33 +587,58 @@
     <script>
         const createdFiles = {};
         let activeFileName = null;
+        let lastBuildErrors = [];
+        let activePanelTab = 0;
 
-        const codeSnippets = [
-            "stdio.h", "stdlib.h", "iostream", "string", "vector", "algorithm", "cmath", "stdio",
-            "printf(\"\");", "scanf(\"\");", "cout << ", "cin >> ", "endl", "include", "using namespace std;",
-            "int main() {\n    \n    return 0;\n}", "int", "float", "double", "char", "void", "return", "if", "else", "for", "while"
+        // مكتبة الهينتات والاقتراحات الخام الكاملة للغة C
+        const cKeywords = [
+            "#include <stdio.h>",
+            "#include <stdlib.h>",
+            "#include <string.h>",
+            "#include <math.h>",
+            "int main() {\n    \n    return 0;\n}",
+            "printf(\"\\n\");",
+            "scanf(\"%d\", &);",
+            "int", "float", "double", "char", "void", "long", "short", "unsigned", "signed",
+            "if () {\n    \n}",
+            "else {\n    \n}",
+            "else if () {\n    \n}",
+            "for (int i = 0; i < ; i++) {\n    \n}",
+            "while () {\n    \n}",
+            "do {\n    \n} while ();",
+            "switch () {\n    case 1:\n        break;\n    default:\n        break;\n}",
+            "return 0;",
+            "break;",
+            "continue;",
+            "struct Node {\n    int data;\n    struct Node* next;\n};",
+            "malloc()",
+            "free()",
+            "strlen()",
+            "strcpy()"
         ];
 
-        CodeMirror.registerHelper("hint", "clike", function(cm) {
+        CodeMirror.registerHelper("hint", "cSmartHint", function(cm) {
             let cur = cm.getCursor();
             let token = cm.getTokenAt(cur);
-            let curWord = token.string.trim();
+            let lineStr = cm.getLine(cur.line);
+            let curWord = lineStr.slice(token.start, token.end).trim();
 
             let text = cm.getValue();
-            let words = text.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
-            let allSuggestions = Array.from(new Set([...codeSnippets, ...words]));
+            let userWords = text.match(/\b[A-Za-z_][A-Za-z0-9_]*\b/g) || [];
+            let pool = Array.from(new Set([...cKeywords, ...userWords]));
 
-            let list = allSuggestions.filter(w => w.toLowerCase().startsWith(curWord.toLowerCase()));
+            let cleanSearch = curWord.toLowerCase();
+            let matches = cleanSearch.length > 0 ? pool.filter(w => w.toLowerCase().includes(cleanSearch)) : pool.slice(0, 15);
 
             return {
-                list: list.length ? list : allSuggestions.slice(0, 10),
+                list: matches,
                 from: CodeMirror.Pos(cur.line, token.start),
                 to: CodeMirror.Pos(cur.line, token.end)
             };
         });
 
         const editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
-            mode: "text/x-c++src",
+            mode: "text/x-csrc",
             lineNumbers: true,
             indentUnit: 4,
             matchBrackets: true,
@@ -735,10 +647,30 @@
         });
 
         editor.on("inputRead", function(cm, change) {
-            if (!cm.state.completionActive && change.text[0].match(/[\w#<"]/)) {
-                CodeMirror.showHint(cm, CodeMirror.hint.clike, {completeSingle: false});
+            if (!cm.state.completionActive && change.text[0].match(/[\w#]/)) {
+                CodeMirror.showHint(cm, CodeMirror.hint.cSmartHint, { completeSingle: false });
             }
         });
+
+        function triggerAutoComplete() {
+            CodeMirror.showHint(editor, CodeMirror.hint.cSmartHint, { completeSingle: false });
+        }
+
+        function insertSymbol(symbol) {
+            if (!activeFileName) {
+                alert("يرجى فتح ملف أولاً لتتمكن من الكتابة فيه!");
+                return;
+            }
+            if (symbol === '{ }' || symbol === '( )' || symbol === '[ ]' || symbol === '" "' || symbol === "' '") {
+                let doc = editor.getDoc();
+                let cursor = doc.getCursor();
+                doc.replaceRange(symbol[0] + symbol[2], cursor);
+                doc.setCursor({line: cursor.line, ch: cursor.ch + 1});
+            } else {
+                editor.replaceSelection(symbol);
+            }
+            editor.focus();
+        }
 
         editor.on("change", function() {
             if (activeFileName) {
@@ -746,9 +678,25 @@
             }
         });
 
+        // 📱 نظام تفاعل ذكي وتلقائي لشريط الأقواس مع كيبورد الموبايل
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const symbolsBar = document.getElementById('keyboardSymbolsBar');
+                if (activeFileName && symbolsBar.style.display === 'flex') {
+                    const keyboardHeight = window.innerHeight - window.visualViewport.height;
+                    if (keyboardHeight > 100) {
+                        symbolsBar.style.bottom = keyboardHeight + 'px';
+                    } else {
+                        symbolsBar.style.bottom = '0px';
+                    }
+                }
+            });
+        }
+
         function showStartPage() {
             document.getElementById('startPage').style.display = 'flex';
             document.getElementById('editorWrapper').style.display = 'none';
+            document.getElementById('keyboardSymbolsBar').style.display = 'none';
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById('tab-start').classList.add('active');
             activeFileName = null;
@@ -758,23 +706,41 @@
             activeFileName = filename;
             document.getElementById('startPage').style.display = 'none';
             document.getElementById('editorWrapper').style.display = 'flex';
+            
+            const symbolsBar = document.getElementById('keyboardSymbolsBar');
+            symbolsBar.style.display = 'flex';
+            symbolsBar.style.bottom = '0px';
 
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const currentTab = document.getElementById(`tab-${filename}`);
-            if (currentTab) currentTab.classList.add('active');
+            let tabEl = document.getElementById(`tab-${filename}`);
+            if (tabEl) tabEl.classList.add('active');
 
-            const fileData = createdFiles[filename];
-            editor.setOption('mode', fileData.mode);
-            editor.setValue(fileData.content);
+            editor.setValue(createdFiles[filename].content);
+            setTimeout(() => { editor.refresh(); editor.focus(); }, 50);
+        }
 
-            setTimeout(() => {
-                editor.refresh();
-                editor.focus();
-            }, 50);
+        function closeFile(e, filename) {
+            e.stopPropagation();
+            let tabEl = document.getElementById(`tab-${filename}`);
+            if (tabEl) tabEl.remove();
+
+            delete createdFiles[filename];
+
+            if (activeFileName === filename) {
+                let remainingFiles = Object.keys(createdFiles);
+                if (remainingFiles.length > 0) {
+                    openFile(remainingFiles[remainingFiles.length - 1]);
+                } else {
+                    showStartPage();
+                }
+            }
         }
 
         function startNewFileWizard() {
-            updateDefaultFileName();
+            document.getElementById('wizardLang').value = 'c';
+            document.getElementById('wizardName').value = '';
+            document.getElementById('wizardPath').value = '';
+            validateWizardForm();
             document.getElementById('fileWizardModal').style.display = 'flex';
         }
 
@@ -782,97 +748,132 @@
             document.getElementById('fileWizardModal').style.display = 'none';
         }
 
-        function updateDefaultFileName() {
-            const lang = document.getElementById('wizardLang').value;
-            const nameInput = document.getElementById('wizardName');
-            if (lang === 'cpp') nameInput.value = "main.cpp";
-            else if (lang === 'c') nameInput.value = "main.c";
-            else if (lang === 'javascript') nameInput.value = "script.js";
-            else if (lang === 'html') nameInput.value = "index.html";
-            else if (lang === 'css') nameInput.value = "style.css";
+        function validateWizardForm() {
+            const fileName = document.getElementById('wizardName').value.trim();
+            const filePath = document.getElementById('wizardPath').value.trim();
+            document.getElementById('btnContinueWizard').disabled = !(fileName.length > 0 && filePath.length > 0);
         }
 
         async function browseFolder() {
             try {
                 if (window.showDirectoryPicker) {
                     const dirHandle = await window.showDirectoryPicker();
-                    document.getElementById('wizardPath').value = `C:\\${dirHandle.name}`;
-                    logConsole(`Selected directory: ${dirHandle.name}`);
+                    if (dirHandle && dirHandle.name) {
+                        document.getElementById('wizardPath').value = `C:\\${dirHandle.name}`;
+                        validateWizardForm();
+                    }
                 } else {
                     let customPath = prompt("Enter folder directory:", "C:\\TenxProject");
-                    if (customPath) document.getElementById('wizardPath').value = customPath;
+                    if (customPath) { document.getElementById('wizardPath').value = customPath.trim(); validateWizardForm(); }
                 }
-            } catch (err) {
-                console.log("Cancelled browse.");
-            }
+            } catch (err) {}
         }
 
         function confirmNewFile() {
-            const lang = document.getElementById('wizardLang').value;
-            const fileName = document.getElementById('wizardName').value.trim();
+            let fileName = document.getElementById('wizardName').value.trim();
             const filePath = document.getElementById('wizardPath').value.trim();
-
-            if (!fileName) {
-                alert("يرجى كتابة اسم الملف!");
-                return;
-            }
-
+            if (!fileName.endsWith('.c')) fileName += '.c';
             closeWizard();
 
-            let mode = "text/x-c++src";
-            if (lang === 'c' || lang === 'cpp') mode = "text/x-c++src";
-            else if (lang === 'javascript') mode = "javascript";
-            else if (lang === 'html') mode = "xml";
-            else if (lang === 'css') mode = "css";
+            createdFiles[fileName] = { content: "", path: filePath };
 
-            createdFiles[fileName] = {
-                content: "", 
-                mode: mode,
-                path: filePath
-            };
-
-            const treeContainer = document.getElementById('projectFileList');
-            if (!document.getElementById(`tree-${fileName}`)) {
-                const newTreeNode = document.createElement('div');
-                newTreeNode.className = 'tree-item tree-indent';
-                newTreeNode.id = `tree-${fileName}`;
-                newTreeNode.innerHTML = `📄 ${fileName}`;
-                newTreeNode.onclick = () => openFile(fileName);
-                treeContainer.appendChild(newTreeNode);
-            }
-
-            const tabsHeader = document.getElementById('tabsHeader');
+            let tabsHeader = document.getElementById('tabsHeader');
             if (!document.getElementById(`tab-${fileName}`)) {
-                const newTab = document.createElement('div');
-                newTab.className = 'tab';
-                newTab.id = `tab-${fileName}`;
-                newTab.innerHTML = `📄 ${fileName}`;
-                newTab.onclick = () => openFile(fileName);
-                tabsHeader.appendChild(newTab);
+                let tab = document.createElement('div');
+                tab.className = 'tab';
+                tab.id = `tab-${fileName}`;
+                tab.innerHTML = `<span>📄 ${fileName}</span> <span class="tab-close" onclick="closeFile(event, '${fileName}')">✕</span>`;
+                tab.onclick = () => openFile(fileName);
+                tabsHeader.appendChild(tab);
             }
 
             openFile(fileName);
-            logConsole(`Created file '${fileName}' successfully.`);
+            logConsole(`Created C file '${fileName}' in [${filePath}].`);
+        }
+
+        function switchPanelTab(index) {
+            activePanelTab = index;
+            document.getElementById('panelTab0').className = index === 0 ? 'panel-tab active' : 'panel-tab';
+            document.getElementById('panelTab1').className = index === 1 ? 'panel-tab active' : 'panel-tab';
+            renderConsoleOutput();
+        }
+
+        function renderConsoleOutput() {
+            const consoleBox = document.getElementById('consoleOutput');
+            if (activePanelTab === 0) {
+                consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
+            } else {
+                consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
+            }
         }
 
         function logConsole(msg) {
             const consoleBox = document.getElementById('consoleOutput');
-            consoleBox.innerHTML += `\n${msg}`;
-            consoleBox.scrollTop = consoleBox.scrollHeight;
+            let current = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
+            consoleBox.dataset.buildLog = current + `\n${msg}`;
+            if (activePanelTab === 0) {
+                consoleBox.innerHTML = consoleBox.dataset.buildLog;
+                consoleBox.scrollTop = consoleBox.scrollHeight;
+            }
         }
 
         function clearConsole() {
-            document.getElementById('consoleOutput').innerHTML = '';
+            const consoleBox = document.getElementById('consoleOutput');
+            consoleBox.dataset.buildLog = "";
+            consoleBox.innerHTML = "";
+            lastBuildErrors = [];
         }
 
         function saveFile() {
-            logConsole(`File '${activeFileName || "untitled"}' saved.`);
+            logConsole(`File '${activeFileName || "untitled"}' saved successfully.`);
             alert("تم حفظ الملف بنجاح!");
         }
 
+        function exportFile() {
+            if (!activeFileName) {
+                alert("افتح ملفاً أولاً لتصديره!");
+                return;
+            }
+            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = activeFileName;
+            link.click();
+            logConsole(`File '${activeFileName}' exported successfully.`);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+        }
+
         function buildCode() {
-            logConsole(`-------------- Build: Debug --------------`);
-            logConsole(`Compiled with 0 errors.`);
+            lastBuildErrors = [];
+            logConsole(`-------------- Build: GCC Compiler (C) --------------`);
+            if (activeFileName) {
+                const code = editor.getValue();
+                let lines = code.split('\n');
+                let openBraces = 0, closeBraces = 0;
+
+                lines.forEach((line, idx) => {
+                    let trimmed = line.trim();
+                    if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
+                        if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while")) {
+                            lastBuildErrors.push(`[Warning] Line ${idx + 1}: Possible missing semicolon ';'`);
+                        }
+                    }
+                    for (let char of line) {
+                        if (char === '{') openBraces++;
+                        if (char === '}') closeBraces++;
+                    }
+                });
+
+                if (openBraces !== closeBraces) {
+                    lastBuildErrors.push(`[Error] Brace mismatch: opened { (${openBraces}), closed } (${closeBraces})`);
+                }
+            }
+            logConsole(lastBuildErrors.length === 0 ? "Target compiled with 0 errors." : `Target compiled with ${lastBuildErrors.length} message(s).`);
         }
 
         function runCode() {
@@ -884,28 +885,16 @@
             const cmdModal = document.getElementById('cmdModal');
             const cmdBody = document.getElementById('cmdBody');
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nExecuting ${activeFileName}...\n<br>`;
+            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<br>`;
 
             setTimeout(() => {
                 const codeText = editor.getValue();
                 let output = "Process returned 0.";
+                let match = codeText.match(/printf\s*\(\s*"([^"]*)"\s*\);?/);
+                if (match) output = match[1];
 
-                const matchBody = codeText.match(/<body>([\s\S]*?)<\/body>/i);
-                if (matchBody) {
-                    output = matchBody[1].replace(/<[^>]*>?/gm, '').trim();
-                } else {
-                    const coutMatches = codeText.matchAll(/cout\s*<<\s*"([^"]*)"/g);
-                    let arr = [];
-                    for (const m of coutMatches) arr.push(m[1]);
-
-                    const printfMatches = codeText.matchAll(/printf\s*\(\s*"([^"]*)"\s*\)/g);
-                    for (const m of printfMatches) arr.push(m[1]);
-
-                    if (arr.length > 0) output = arr.join("\n");
-                }
-
-                cmdBody.innerHTML += `<span style="color: #ffffff; font-weight: bold;">${output}</span><br>`;
-                cmdBody.innerHTML += `<br>Process returned 0 (0x0)   execution time : 0.019 s<br>Press any key to continue . . .`;
+                cmdBody.innerHTML += `<span style="color: #38bdf8; font-weight: bold;">${output}</span><br>`;
+                cmdBody.innerHTML += `<br>Process returned 0 (0x0)   execution time : 0.012 s<br>Press any key to continue . . .`;
             }, 300);
         }
 
@@ -913,6 +902,35 @@
             buildCode();
             setTimeout(runCode, 300);
         }
+
+        // Draggable CMD (Mouse & Touch Support)
+        const cmdModal = document.getElementById('cmdModal');
+        const cmdHeader = document.getElementById('cmdHeader');
+        let isDragging = false, startX, startY;
+
+        cmdHeader.addEventListener('mousedown', (e) => {
+            isDragging = true; startX = e.clientX - cmdModal.offsetLeft; startY = e.clientY - cmdModal.offsetTop;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            cmdModal.style.left = (e.clientX - startX) + 'px';
+            cmdModal.style.top = (e.clientY - startY) + 'px';
+        });
+        document.addEventListener('mouseup', () => { isDragging = false; });
+
+        cmdHeader.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX - cmdModal.offsetLeft;
+            startY = touch.clientY - cmdModal.offsetTop;
+        });
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            cmdModal.style.left = (touch.clientX - startX) + 'px';
+            cmdModal.style.top = (touch.clientY - startY) + 'px';
+        });
+        document.addEventListener('touchend', () => { isDragging = false; });
     </script>
 </body>
 </html>
