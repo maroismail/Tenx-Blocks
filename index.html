@@ -629,8 +629,9 @@
         let lastBuildErrors = [];
         let activePanelTab = 0;
 
-        const JDOODLE_CLIENT_ID = "Dae9bbeaba724e3ca66c6c560121bd35";
-        const JDOODLE_CLIENT_SECRET = "43c9d861929cd93f1ecfcf737ac2829f4d483a3a183dce4dd8bb828c356e3d2a";
+        // المفاتيح الجديدة الصحيحة لـ JDoodle API
+        const JDOODLE_CLIENT_ID = "48f55b8d064ff14fcf34274b69edfe09";
+        const JDOODLE_CLIENT_SECRET = "79d6b20aa03e35ecc7e6d8d4429a8c93ef6102d7663b13fc7aad972e10e92623";
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -940,7 +941,7 @@
             logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile on server." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        // تشغيل الكود عبر JDoodle API مع دمج بروكسي CORS قوي (corsproxy.io)
+        // تشغيل الكود عبر JDoodle API بالمعرفات الجديدة وتمرير البروكسي
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -966,9 +967,9 @@
             const statusText = document.getElementById('statusText');
 
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Compiling via JDoodle (CORS Proxy)...</span>`;
+            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Compiling via JDoodle (New Keys)...</span>`;
             statusText.innerText = "Status: Compiling...";
-            logConsole(`Sending '${activeFileName}' to JDoodle via Proxy...`);
+            logConsole(`Sending '${activeFileName}' to JDoodle...`);
 
             try {
                 const targetUrl = "https://api.jdoodle.com/v1/execute";
@@ -1010,7 +1011,7 @@
                     logConsole(`API Error: ${errMsg}`);
                 }
             } catch (err) {
-                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">CORS / Network Error: ${err.message}\nتأكد من الاتصال بالإنترنت.</span>`;
+                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">CORS / Network Error: ${err.message}</span>`;
                 logConsole(`Error: ${err.message}`);
             } finally {
                 statusText.innerText = "Status: Ready";
