@@ -288,12 +288,12 @@
             font-size: 16px;
             line-height: 1.55 !important;
             width: 100% !important;
-            padding-bottom: 48px;
+            padding-bottom: 50px;
             user-select: text !important;
             -webkit-user-select: text !important;
         }
 
-        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) في الوضع الفاتح والداكن */
+        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
         .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
         .cm-s-default .cm-def { color: #0f172a !important; font-weight: bold; }
         .cm-s-default .cm-variable { color: #1f2937 !important; }
@@ -321,7 +321,7 @@
             border-left: 2px solid #38bdf8 !important;
         }
 
-        /* شريط الأقواس الثابت فوق الكيبورد مباشرة */
+        /* شريط الأقواس الثابت فوق كيبورد الموبايل والتطبيق */
         .keyboard-symbols-bar {
             display: none;
             position: fixed;
@@ -547,14 +547,14 @@
         </div>
     </div>
 
-    <!-- شريط الأقواس الثابت فوق الكيبورد مباشرة -->
+    <!-- شريط الأقواس الثابت فوق كيبورد التطبيق والموبايل -->
     <div class="keyboard-symbols-bar" id="keyboardSymbolsBar">
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('{ }')">{ }</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('( )')">( )</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('[ ]')">[ ]</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol(';')">;</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('&quot; &quot;')">" "</div>
-        <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol(&quot;' '&quot;)">' '</div>
+        <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('&apos; &apos;')">' '</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('#')">#</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('<')">&lt;</div>
         <div class="symbol-chip" onmousedown="event.preventDefault(); insertSymbol('>')">&gt;</div>
@@ -614,7 +614,7 @@
         </div>
     </div>
 
-    <!-- CMD Modal (Draggable Mouse & Touch) -->
+    <!-- CMD Modal -->
     <div class="cmd-modal" id="cmdModal">
         <div class="cmd-header" id="cmdHeader">
             <span>C:\Windows\system32\cmd.exe - TenxProject.exe</span>
@@ -629,7 +629,6 @@
         let lastBuildErrors = [];
         let activePanelTab = 0;
 
-        // مكتبة الهينتات والاقتراحات الخام الكاملة للغة C
         const cKeywords = [
             "#include <stdio.h>",
             "#include <stdlib.h>",
@@ -717,7 +716,7 @@
             }
         });
 
-        // تثبيت شريط الأقواس فوق كيبورد الموبايل بدقة (Android + iOS + WebView)
+        // 📱 نظام رصد مزدوج لتثبيت شريط الأقواس فوق كيبورد التطبيق والموبايل لحظياً
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
             if (!activeFileName || symbolsBar.style.display !== 'flex') return;
@@ -726,6 +725,12 @@
                 const vv = window.visualViewport;
                 const bottomOffset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
                 symbolsBar.style.bottom = bottomOffset + 'px';
+            } else {
+                // توافق تام لو الـ WebView مش بيدعم الـ visualViewport
+                const windowHeightDiff = window.outerHeight - window.innerHeight;
+                if (windowHeightDiff > 150) {
+                    symbolsBar.style.bottom = '0px';
+                }
             }
         }
 
@@ -733,10 +738,12 @@
             window.visualViewport.addEventListener('resize', syncSymbolsBarPosition);
             window.visualViewport.addEventListener('scroll', syncSymbolsBarPosition);
         }
+        window.addEventListener('resize', syncSymbolsBarPosition);
 
         editor.on("focus", () => {
-            setTimeout(syncSymbolsBarPosition, 100);
-            setTimeout(syncSymbolsBarPosition, 300);
+            setTimeout(syncSymbolsBarPosition, 50);
+            setTimeout(syncSymbolsBarPosition, 200);
+            setTimeout(syncSymbolsBarPosition, 400);
         });
 
         editor.on("blur", () => {
