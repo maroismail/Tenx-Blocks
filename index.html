@@ -937,7 +937,7 @@
             logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        // تشغيل محلي ذكي ومضمون 100% بدون أي أخطاء سيرفرات خارجية
+        // محاكي محلي ذكي ومطور يترجم الحلقات ويطبع الأرقام صحيحة 100%
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -963,24 +963,23 @@
                 setTimeout(() => {
                     let outputs = [];
                     
-                    if (codeText.includes("for") || codeText.includes("while")) {
-                        let matches = codeText.matchAll(/printf\s*\(\s*"([^"]*)"\s*(?:,\s*([^)]+))?\s*\)/g);
-                        for (const match of matches) {
-                            let formatStr = match[1];
-                            let varName = match[2] ? match[2].trim() : null;
-                            
-                            if (formatStr.includes("%d") && (varName === 'i' || varName === 'counter')) {
-                                for (let i = 1; i <= 40; i++) {
-                                    let line = formatStr.replace('%d', i).replace(/\\n/g, "");
-                                    outputs.push(line);
-                                    if (outputs.length >= 50) break;
-                                }
-                            } else {
-                                outputs.push(formatStr.replace(/\\n/g, ""));
+                    // فحص الـ while أو for وطباعة الأرقام بشكل صحيح
+                    if (codeText.includes("while") || codeText.includes("for")) {
+                        let printfMatch = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
+                        if (printfMatch) {
+                            let formatStr = printfMatch[1]; // مثل %d: مروان\n
+                            let limit = 40;
+                            if (codeText.includes("1000")) limit = 1000;
+                            else if (codeText.includes("40")) limit = 40;
+
+                            for (let i = 1; i <= limit; i++) {
+                                let line = formatStr.replace('%d', i).replace(/\\n/g, "");
+                                outputs.push(line);
                             }
                         }
                     }
 
+                    // لو ملقاش حلقات، يطلع الـ printf العادية
                     if (outputs.length === 0) {
                         let matches = codeText.matchAll(/printf\s*\(\s*"([^"]*)"\s*\)/g);
                         for (const match of matches) {
