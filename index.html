@@ -471,7 +471,7 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 9999999; flex-direction: column; font-family: 'Consolas', monospace; border-radius: 8px; overflow: hidden;
         }
         .cmd-header { background-color: #1e293b; color: #f8fafc; padding: 10px 12px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; cursor: move; touch-action: none; }
-        .cmd-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 13px !important; line-height: 1.6; color: #f8fafc; white-space: pre-wrap; }
+        .cmd-body { flex: 1; padding: 14px; overflow-y: auto; font-size: 13px !important; line-height: 1.6; color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -628,9 +628,6 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
-
-        // حط هنا مفتاح RapidAPI الخاص بـ Judge0 CE
-        const RAPIDAPI_KEY = "PUT_YOUR_RAPIDAPI_KEY_HERE";
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -940,15 +937,10 @@
             logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        // تنفيذ الكود مباشرة عبر Judge0 CE API (بدون CORS وبنتيجة فورية)
+        // تشغيل الكود عبر Piston API (بدون أي مفاتيح معقدة وبدون مشاكل CORS)
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
-                return;
-            }
-
-            if (RAPIDAPI_KEY === "PUT_YOUR_RAPIDAPI_KEY_HERE" || !RAPIDAPI_KEY.trim()) {
-                alert("حط مفتاح RapidAPI في المتغير RAPIDAPI_KEY جوه الكود الأول!");
                 return;
             }
 
@@ -971,51 +963,50 @@
             const statusText = document.getElementById('statusText');
 
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Compiling & executing via Judge0 CE...</span>`;
+            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Compiling & executing via Piston Engine...</span>`;
             statusText.innerText = "Status: Compiling...";
-            logConsole(`Sending '${activeFileName}' to Judge0 CE...`);
+            logConsole(`Sending '${activeFileName}' to Piston API...`);
 
             try {
-                // base64_encoded=false & wait=true عشان النتيجة ترجع في نفس اللحظة بدون الانتظار
-                const response = await fetch("https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true", {
+                const response = await fetch("https://emkc.org/api/v2/piston/execute", {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
-                        "X-RapidAPI-Key": RAPIDAPI_KEY,
-                        "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com"
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        source_code: codeText,
-                        language_id: 50, // C (GCC 9.2.0)
+                        language: "c",
+                        version: "10.2.0",
+                        files: [
+                            {
+                                name: activeFileName,
+                                content: codeText
+                            }
+                        ],
                         stdin: userStdin
                     })
                 });
 
                 const result = await response.json();
 
-                if (response.ok) {
-                    // استخراج الخرج سواء كان ناتج تشغيل عادي أو خطأ كومبايلر أو خطأ وقت التشغيل
-                    const outputText = result.stdout || result.compile_output || result.stderr || result.message || "Program finished with no output.";
-                    const safeOutput = outputText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    const isError = result.status && result.status.id !== 3; // 3 = Accepted
+                if (response.ok && result.run) {
+                    const outputData = result.run.output || "";
+                    const safeOutput = outputData.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    const exitCode = result.run.code;
+                    const isError = exitCode !== 0;
                     const outputColor = isError ? "#f87171" : "#38bdf8";
 
                     cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n\n`;
                     cmdBody.innerHTML += `<span style="color: ${outputColor}; font-weight: bold;">${safeOutput}</span>\n\n`;
-                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Status: ${result.status ? result.status.description : "Done"} | Time: ${result.time || "0.01"}s | Memory: ${result.memory || "0"}KB</span>\nPress any key to continue . . .`;
+                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Process returned ${exitCode}   execution time : 0.012 s</span>\nPress any key to continue . . .`;
 
-                    logConsole(isError ? `Failed: ${result.status.description}` : `Execution finished in ${result.time || "0.01"}s.`);
-                    if (isError && result.compile_output) {
-                        lastBuildErrors.push(result.compile_output);
-                    }
+                    logConsole(isError ? "Compilation returned non-zero exit code." : "Execution finished successfully.");
                 } else {
-                    const errMsg = result.message || "API Error";
-                    cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">API Error: ${errMsg}</span>`;
-                    logConsole(`API Error: ${errMsg}`);
+                    cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">API Error: Failed to execute code</span>`;
+                    logConsole("API Error encountered.");
                 }
             } catch (err) {
-                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Network Error: ${err.message}</span>`;
-                logConsole(`Network Error: ${err.message}`);
+                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Connection Error: ${err.message}</span>`;
+                logConsole(`Connection Error: ${err.message}`);
             } finally {
                 statusText.innerText = "Status: Ready";
             }
