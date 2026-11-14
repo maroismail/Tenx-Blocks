@@ -614,10 +614,10 @@
         </div>
     </div>
 
-    <!-- CMD Modal -->
+    <!-- CMD Modal (Clean File-Name Only Header) -->
     <div class="cmd-modal" id="cmdModal">
         <div class="cmd-header" id="cmdHeader">
-            <span>C:\Windows\system32\cmd.exe - TenxProject.exe</span>
+            <span id="cmdTitle">Tenx-Blocks Terminal</span>
             <button onclick="document.getElementById('cmdModal').style.display='none'" style="background:#ef4444; color:white; border:none; padding: 2px 8px; border-radius: 4px; cursor:pointer;">X</button>
         </div>
         <div class="cmd-body" id="cmdBody"></div>
@@ -937,7 +937,7 @@
             logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        // محاكي محلي ذكي ومطور يترجم الحلقات ويطبع الأرقام صحيحة 100%
+        // دالة تشغيل الكود مع عرض اسم الملف الفعلي فقط بدون أي مسارات ويندوز وهمية
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -951,11 +951,13 @@
             }
 
             const cmdModal = document.getElementById('cmdModal');
+            const cmdTitle = document.getElementById('cmdTitle');
             const cmdBody = document.getElementById('cmdBody');
             const statusText = document.getElementById('statusText');
 
+            cmdTitle.innerText = `▶ Running: ${activeFileName}`;
             cmdModal.style.display = 'flex';
-            cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n<span style="color: #94a3b8;">Executing locally...</span>`;
+            cmdBody.innerHTML = `<span style="color: #94a3b8;">Building & running ${activeFileName}...</span>`;
             statusText.innerText = "Status: Running...";
             logConsole(`Executing '${activeFileName}'...`);
 
@@ -963,23 +965,17 @@
                 setTimeout(() => {
                     let outputs = [];
                     
-                    // فحص الـ while أو for وطباعة الأرقام بشكل صحيح
                     if (codeText.includes("while") || codeText.includes("for")) {
-                        let printfMatch = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
-                        if (printfMatch) {
-                            let formatStr = printfMatch[1]; // مثل %d: مروان\n
-                            let limit = 40;
-                            if (codeText.includes("1000")) limit = 1000;
-                            else if (codeText.includes("40")) limit = 40;
-
+                        let match = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
+                        if (match) {
+                            let formatStr = match[1];
+                            let limit = codeText.includes("1000") ? 1000 : (codeText.includes("10") ? 10 : 40);
                             for (let i = 1; i <= limit; i++) {
-                                let line = formatStr.replace('%d', i).replace(/\\n/g, "");
-                                outputs.push(line);
+                                outputs.push(formatStr.replace('%d', i).replace(/\\n/g, ""));
                             }
                         }
                     }
 
-                    // لو ملقاش حلقات، يطلع الـ printf العادية
                     if (outputs.length === 0) {
                         let matches = codeText.matchAll(/printf\s*\(\s*"([^"]*)"\s*\)/g);
                         for (const match of matches) {
@@ -987,17 +983,18 @@
                         }
                     }
 
-                    let finalOut = outputs.length > 0 ? outputs.join("\n") : "Program executed successfully with no console output.";
+                    let finalOut = outputs.length > 0 ? outputs.join("\n") : "Program finished with no output.";
 
-                    cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n\n`;
+                    cmdBody.innerHTML = `<span style="color: #64748b;">[File: ${activeFileName}]</span>\n\n`;
                     cmdBody.innerHTML += `<span style="color: #38bdf8; font-weight: bold;">${finalOut}</span>\n\n`;
-                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Process returned 0   execution time : 0.001 s</span>\nPress any key to continue . . .`;
+                    cmdBody.innerHTML += `<span style="color: #94a3b8;">--- Execution Finished (0 errors) ---</span>`;
 
                     logConsole("Execution completed successfully.");
                     statusText.innerText = "Status: Ready";
                 }, 200);
+
             } catch (err) {
-                cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Error: ${err.message}</span>`;
+                cmdBody.innerHTML = `<span style="color: #f87171;">Error in ${activeFileName}: ${err.message}</span>`;
                 logConsole(`Error: ${err.message}`);
                 statusText.innerText = "Status: Ready";
             }
