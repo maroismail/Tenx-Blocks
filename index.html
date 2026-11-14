@@ -603,7 +603,7 @@
 
                 <label>3. Save Path / Directory:</label>
                 <div class="path-group">
-                    <input type="text" id="wizardPath" value="" placeholder="e.g. C:\TenxProject" oninput="validateWizardForm()">
+                    <input type="text" id="wizardPath" value="" placeholder="e.g. C:\Test" oninput="validateWizardForm()">
                     <button class="btn-browse" onclick="browseFolder()">...</button>
                 </div>
             </div>
@@ -614,7 +614,7 @@
         </div>
     </div>
 
-    <!-- CMD Modal (Clean File-Name Only Header) -->
+    <!-- CMD Modal -->
     <div class="cmd-modal" id="cmdModal">
         <div class="cmd-header" id="cmdHeader">
             <span id="cmdTitle">Tenx-Blocks Terminal</span>
@@ -824,7 +824,7 @@
                         validateWizardForm();
                     }
                 } else {
-                    let customPath = prompt("Enter folder directory:", "C:\\TenxProject");
+                    let customPath = prompt("Enter folder directory:", "C:\\Test");
                     if (customPath) { document.getElementById('wizardPath').value = customPath.trim(); validateWizardForm(); }
                 }
             } catch (err) {}
@@ -862,8 +862,10 @@
         function renderConsoleOutput() {
             const consoleBox = document.getElementById('consoleOutput');
             if (activePanelTab === 0) {
+                consoleBox.style.color = "var(--console-text)";
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
+                consoleBox.style.color = "#f87171"; // لون أحمر مخصص للأخطاء
                 consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
             }
         }
@@ -909,47 +911,62 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
+        // فحص الأخطاء ومنع التشغيل في حال وجود مشكلة
         function buildCode() {
             lastBuildErrors = [];
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
-            if (activeFileName) {
-                const code = editor.getValue();
-                let lines = code.split('\n');
-                let openBraces = 0, closeBraces = 0;
-
-                lines.forEach((line, idx) => {
-                    let trimmed = line.trim();
-                    if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
-                        if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while")) {
-                            lastBuildErrors.push(`[Warning] Line ${idx + 1}: Possible missing semicolon ';'`);
-                        }
-                    }
-                    for (let char of line) {
-                        if (char === '{') openBraces++;
-                        if (char === '}') closeBraces++;
-                    }
-                });
-
-                if (openBraces !== closeBraces) {
-                    lastBuildErrors.push(`[Error] Brace mismatch: opened { (${openBraces}), closed } (${closeBraces})`);
-                }
+            
+            if (!activeFileName) {
+                alert("اختر ملفاً أولاً!");
+                return false;
             }
-            logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile." : `Pre-check found ${lastBuildErrors.length} message(s).`);
+
+            const code = editor.getValue();
+            let lines = code.split('\n');
+            let openBraces = 0, closeBraces = 0;
+
+            lines.forEach((line, idx) => {
+                let trimmed = line.trim();
+                if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
+                    if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while") && !trimmed.includes("else")) {
+                        lastBuildErrors.push(`[Error] Line ${idx + 1}: Missing semicolon ';' at the end of statement.`);
+                    }
+                }
+                for (let char of line) {
+                    if (char === '{') openBraces++;
+                    if (char === '}') closeBraces++;
+                }
+            });
+
+            if (openBraces !== closeBraces) {
+                lastBuildErrors.push(`[Error] Brace mismatch: opened { (${openBraces}), closed } (${closeBraces})`);
+            }
+
+            if (lastBuildErrors.length > 0) {
+                logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
+                switchPanelTab(1); // فتح تبويب الأخطاء تلقائياً باللون الأحمر
+                return false;
+            } else {
+                logConsole("Syntax pre-check passed. Ready to compile.");
+                switchPanelTab(0);
+                return true;
+            }
         }
 
-        // دالة تشغيل الكود مع عرض اسم الملف الفعلي فقط بدون أي مسارات ويندوز وهمية
+        // تشغيل الكود مع شرط نجاح الفحص أولاً
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
                 return;
             }
 
-            const codeText = editor.getValue();
-            if (!codeText.trim()) {
-                alert("الملف فارغ! اكتب كود C أولاً.");
+            let isPassed = buildCode();
+            if (!isPassed) {
+                alert("⚠️ يوجد أخطاء في الكود! يرجى مراجعة تبويب (Build messages) وتصحيح الأخطاء باللون الأحمر قبل التشغيل.");
                 return;
             }
 
+            const codeText = editor.getValue();
             const cmdModal = document.getElementById('cmdModal');
             const cmdTitle = document.getElementById('cmdTitle');
             const cmdBody = document.getElementById('cmdBody');
