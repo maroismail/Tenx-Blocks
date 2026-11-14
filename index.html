@@ -295,10 +295,10 @@
 
         /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
         .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.2) !important;
+            background-color: rgba(239, 68, 68, 0.22) !important;
         }
         body.dark-mode .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.35) !important;
+            background-color: rgba(239, 68, 68, 0.38) !important;
         }
 
         /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
@@ -723,7 +723,7 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
-            // مسح علامات الأخطاء الحمراء تلقائياً بمجرد تعديل الكود
+            // مسح التلوين الأحمر فوراً بمجرد تعديل الكود ليبدأ الفحص من جديد بذكاء
             clearErrorMarks();
         });
 
@@ -928,10 +928,10 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء وتلوين السطر باللون الأحمر في المحرر
+        // فحص الأخطاء بدقة تامة وتحديث التلوين ديناميكياً
         function buildCode() {
             lastBuildErrors = [];
-            clearErrorMarks();
+            clearErrorMarks(); // مسح العلامات القديمة تماماً قبل بدء الفحص الجديد
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -945,15 +945,34 @@
 
             lines.forEach((line, idx) => {
                 let trimmed = line.trim();
-                if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
-                    if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while") && !trimmed.includes("else")) {
-                        let errLine = idx + 1;
-                        lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
-                        // تلوين السطر بالأحمر داخل محرر الكود
-                        let mark = editor.addLineClass(idx, "background", "cm-error-line");
-                        errorLineMarks.push(mark);
-                    }
+                
+                // فحص الأسطر التي تحتاج ';' بذكاء (تتجاهل الفراغات، السطور الفارغة، المكتبات، الأقواس، وبدايات الدوال)
+                if (trimmed.length > 0 && 
+                    !trimmed.endsWith(';') && 
+                    !trimmed.endsWith('{') && 
+                    !trimmed.endsWith('}') && 
+                    !trimmed.startsWith('#') && 
+                    !trimmed.startsWith('//') &&
+                    !trimmed.startsWith('/*') &&
+                    !trimmed.includes("int main") && 
+                    !trimmed.includes("void main") && 
+                    !trimmed.includes("if(") && 
+                    !trimmed.includes("if ") && 
+                    !trimmed.includes("else if") && 
+                    !trimmed.includes("else") && 
+                    !trimmed.includes("for(") && 
+                    !trimmed.includes("for ") && 
+                    !trimmed.includes("while(") && 
+                    !trimmed.includes("while ")) {
+                    
+                    let errLine = idx + 1;
+                    lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
+                    
+                    // تلوين السطر الفعلي باللون الأحمر داخل المحرر
+                    let mark = editor.addLineClass(idx, "background", "cm-error-line");
+                    errorLineMarks.push(mark);
                 }
+
                 for (let char of line) {
                     if (char === '{') openBraces++;
                     if (char === '}') closeBraces++;
@@ -966,7 +985,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1); // فتح تبويب رسائل الأخطاء باللون الأحمر تلقائياً
+                switchPanelTab(1); // فتح تبويب رسائل الأخطاء تلقائياً
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -975,7 +994,7 @@
             }
         }
 
-        // تشغيل الكود مع شرط نجاح الفحص أولاً
+        // تشغيل الكود مع فحص ديناميكي يضمن السماح بالتشغيل فور إصلاح الأخطاء
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -984,7 +1003,7 @@
 
             let isPassed = buildCode();
             if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! تم تلوين السطر الذي يحتوي على الخطأ باللون الأحمر. راجع تبويب (Build messages).");
+                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح السطر الملون بالأحمر أولاً قبل التشغيل.");
                 return;
             }
 
