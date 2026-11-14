@@ -937,7 +937,7 @@
             logConsole(lastBuildErrors.length === 0 ? "Syntax pre-check passed. Ready to compile." : `Pre-check found ${lastBuildErrors.length} message(s).`);
         }
 
-        // تنفيذ الكود مجاناً بالكامل عبر Piston API بدون مفاتيح أو فيزا
+        // تنفيذ الكود مجاناً بالكامل وبدون مشاكل عبر خدمة Wandbox المباشرة
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -950,14 +950,6 @@
                 return;
             }
 
-            let userStdin = "";
-            if (codeText.includes("scanf")) {
-                let inputPrompt = prompt("البرنامج يحتوي على إدخال بيانات (scanf).\nاكتب المدخلات هنا:", "");
-                if (inputPrompt !== null) {
-                    userStdin = inputPrompt;
-                }
-            }
-
             const cmdModal = document.getElementById('cmdModal');
             const cmdBody = document.getElementById('cmdBody');
             const statusText = document.getElementById('statusText');
@@ -968,46 +960,39 @@
             logConsole(`Executing '${activeFileName}'...`);
 
             try {
-                const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+                const response = await fetch("https://wandbox.org/api/compile.json", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        language: "c",
-                        version: "10.2.0",
-                        files: [
-                            {
-                                name: activeFileName,
-                                content: codeText
-                            }
-                        ],
-                        stdin: userStdin
+                        compiler: "gcc-c-10.2.0",
+                        code: codeText,
+                        options: "warning,gnu99"
                     })
                 });
 
                 const result = await response.json();
 
-                if (response.ok && result.run) {
-                    const compileErr = result.compile && result.compile.code !== 0 ? result.compile.output : "";
-                    const outputData = compileErr || result.run.output || "Program finished with no output.";
+                if (response.ok) {
+                    const compilerError = result.compiler_error || "";
+                    const programOutput = result.program_output || "";
+                    const outputData = compilerError || programOutput || "Program finished with no output.";
                     const safeOutput = outputData.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    const exitCode = compileErr ? result.compile.code : result.run.code;
-                    const isError = exitCode !== 0;
+                    const isError = result.status !== "0" && compilerError.length > 0;
                     const outputColor = isError ? "#f87171" : "#38bdf8";
 
                     cmdBody.innerHTML = `Microsoft Windows [Version 10.0.19045]\nC:\\TenxProject> gcc ${activeFileName} -o main.exe && main.exe\n\n`;
                     cmdBody.innerHTML += `<span style="color: ${outputColor}; font-weight: bold;">${safeOutput}</span>\n\n`;
-                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Process returned ${exitCode}   execution time : 0.012 s</span>\nPress any key to continue . . .`;
+                    cmdBody.innerHTML += `<span style="color: #94a3b8;">Process returned ${result.status || 0}   execution time : 0.015 s</span>\nPress any key to continue . . .`;
 
-                    logConsole(isError ? "Compilation or runtime error occurred." : "Execution finished successfully.");
-                    if (compileErr) {
-                        lastBuildErrors.push(compileErr);
+                    logConsole(isError ? "Compilation error." : "Execution finished successfully.");
+                    if (compilerError) {
+                        lastBuildErrors.push(compilerError);
                     }
                 } else {
-                    const errMsg = result.message || "Execution Error";
-                    cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">API Error: ${errMsg}</span>`;
-                    logConsole(`API Error: ${errMsg}`);
+                    cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Execution Error</span>`;
+                    logConsole("Error encountered during execution.");
                 }
             } catch (err) {
                 cmdBody.innerHTML = `C:\\TenxProject> gcc ${activeFileName}\n<span style="color: #f87171;">Connection Error: ${err.message}</span>`;
@@ -1044,7 +1029,7 @@
             startY = touch.clientY - cmdModal.offsetTop;
         });
         document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
+            if (!isDragging, !isDragging) return;
             const touch = e.touches[0];
             cmdModal.style.left = (touch.clientX - startX) + 'px';
             cmdModal.style.top = (touch.clientY - startY) + 'px';
