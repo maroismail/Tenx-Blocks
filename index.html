@@ -268,7 +268,7 @@
         .action-icon { font-size: 24px; }
         .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        /* CodeMirror Custom Styling */
+        /* CodeMirror Custom Styling & Error Line Highlighting */
         .editor-wrapper {
             flex: 1;
             display: none;
@@ -291,6 +291,14 @@
             padding-bottom: 50px;
             user-select: text !important;
             -webkit-user-select: text !important;
+        }
+
+        /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
+        .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.2) !important;
+        }
+        body.dark-mode .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.35) !important;
         }
 
         /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
@@ -628,6 +636,7 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
+        let errorLineMarks = []; // لتخزين علامات الأخطاء على الأسطر
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -714,7 +723,14 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
+            // مسح علامات الأخطاء الحمراء تلقائياً بمجرد تعديل الكود
+            clearErrorMarks();
         });
+
+        function clearErrorMarks() {
+            errorLineMarks.forEach(mark => mark.clear());
+            errorLineMarks = [];
+        }
 
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
@@ -885,6 +901,7 @@
             consoleBox.dataset.buildLog = "";
             consoleBox.innerHTML = "";
             lastBuildErrors = [];
+            clearErrorMarks();
         }
 
         function saveFile() {
@@ -911,9 +928,10 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء ومنع التشغيل في حال وجود مشكلة
+        // فحص الأخطاء وتلوين السطر باللون الأحمر في المحرر
         function buildCode() {
             lastBuildErrors = [];
+            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -929,7 +947,11 @@
                 let trimmed = line.trim();
                 if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
                     if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while") && !trimmed.includes("else")) {
-                        lastBuildErrors.push(`[Error] Line ${idx + 1}: Missing semicolon ';' at the end of statement.`);
+                        let errLine = idx + 1;
+                        lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
+                        // تلوين السطر بالأحمر داخل محرر الكود
+                        let mark = editor.addLineClass(idx, "background", "cm-error-line");
+                        errorLineMarks.push(mark);
                     }
                 }
                 for (let char of line) {
@@ -944,7 +966,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1); // فتح تبويب الأخطاء تلقائياً باللون الأحمر
+                switchPanelTab(1); // فتح تبويب رسائل الأخطاء باللون الأحمر تلقائياً
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -962,7 +984,7 @@
 
             let isPassed = buildCode();
             if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! يرجى مراجعة تبويب (Build messages) وتصحيح الأخطاء باللون الأحمر قبل التشغيل.");
+                alert("⚠️ يوجد أخطاء في الكود! تم تلوين السطر الذي يحتوي على الخطأ باللون الأحمر. راجع تبويب (Build messages).");
                 return;
             }
 
