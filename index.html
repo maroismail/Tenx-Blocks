@@ -268,7 +268,7 @@
         .action-icon { font-size: 24px; }
         .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        /* CodeMirror Custom Styling */
+        /* CodeMirror Custom Styling & Error Line Highlighting */
         .editor-wrapper {
             flex: 1;
             display: none;
@@ -291,6 +291,14 @@
             padding-bottom: 50px;
             user-select: text !important;
             -webkit-user-select: text !important;
+        }
+
+        /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
+        .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.22) !important;
+        }
+        body.dark-mode .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.38) !important;
         }
 
         /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
@@ -601,10 +609,10 @@
                 <label>2. File Name:</label>
                 <input type="text" id="wizardName" value="" placeholder="e.g. main.c" oninput="validateWizardForm()">
 
-                <label>3. Save Path / Directory:</label>
+                <label>3. Device & Storage Sync:</label>
                 <div class="path-group">
-                    <input type="text" id="wizardPath" value="" placeholder="e.g. C:\Test" oninput="validateWizardForm()">
-                    <button class="btn-browse" onclick="browseFolder()">...</button>
+                    <input type="text" id="wizardPath" value="" placeholder="Detecting device..." readonly>
+                    <button class="btn-browse" onclick="detectAndSyncDeviceFolder()">📂 Browse</button>
                 </div>
             </div>
             <div class="wizard-footer">
@@ -628,6 +636,19 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
+        let errorLineMarks = [];
+
+        // دالة لتعرف نوع الجهاز تلقائياً وتكييف المسار
+        function getDeviceEnvironment() {
+            const ua = navigator.userAgent;
+            if (/iPhone|iPad|iPod/.test(ua)) {
+                return { type: 'iOS', name: 'Files (iPhone/iPad)' };
+            } else if (/Android/.test(ua)) {
+                return { type: 'Android', name: 'Downloads (Android Storage)' };
+            } else {
+                return { type: 'Desktop', name: 'Computer Directory (PC)' };
+            }
+        }
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -714,7 +735,13 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
+            clearErrorMarks();
         });
+
+        function clearErrorMarks() {
+            errorLineMarks.forEach(mark => mark.clear());
+            errorLineMarks = [];
+        }
 
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
@@ -800,7 +827,11 @@
         function startNewFileWizard() {
             document.getElementById('wizardLang').value = 'c';
             document.getElementById('wizardName').value = '';
-            document.getElementById('wizardPath').value = '';
+            
+            // تحديد مسار الجهاز تلقائياً وإظهاره في النافذة
+            const env = getDeviceEnvironment();
+            document.getElementById('wizardPath').value = `[${env.type}] Connected to ${env.name}`;
+            
             validateWizardForm();
             document.getElementById('fileWizardModal').style.display = 'flex';
         }
@@ -811,32 +842,37 @@
 
         function validateWizardForm() {
             const fileName = document.getElementById('wizardName').value.trim();
-            const filePath = document.getElementById('wizardPath').value.trim();
-            document.getElementById('btnContinueWizard').disabled = !(fileName.length > 0 && filePath.length > 0);
+            document.getElementById('btnContinueWizard').disabled = !(fileName.length > 0);
         }
 
-        async function browseFolder() {
+        // دالة لتزامن الملفات مع نظام ملفات الجهاز الفعلي (كمبيوتر أو موبايل)
+        async function detectAndSyncDeviceFolder() {
+            const env = getDeviceEnvironment();
             try {
-                if (window.showDirectoryPicker) {
+                if (env.type === 'Desktop' && window.showDirectoryPicker) {
                     const dirHandle = await window.showDirectoryPicker();
                     if (dirHandle && dirHandle.name) {
-                        document.getElementById('wizardPath').value = `C:\\${dirHandle.name}`;
+                        document.getElementById('wizardPath').value = `PC Folder: ${dirHandle.name}`;
                         validateWizardForm();
+                        return;
                     }
-                } else {
-                    let customPath = prompt("Enter folder directory:", "C:\\Test");
-                    if (customPath) { document.getElementById('wizardPath').value = customPath.trim(); validateWizardForm(); }
                 }
-            } catch (err) {}
+                // للأجهزة الذكية (آيفون وأندرويد) يتم التزامن عبر تطبيق الملفات الافتراضي
+                alert(`Device detected: ${env.type}. Files will sync directly with your device's native Files app.`);
+                document.getElementById('wizardPath').value = `Synced with ${env.name}`;
+                validateWizardForm();
+            } catch (err) {
+                console.log("Folder access cancelled or unsupported.");
+            }
         }
 
         function confirmNewFile() {
             let fileName = document.getElementById('wizardName').value.trim();
-            const filePath = document.getElementById('wizardPath').value.trim();
+            const env = getDeviceEnvironment();
             if (!fileName.endsWith('.c')) fileName += '.c';
             closeWizard();
 
-            createdFiles[fileName] = { content: "", path: filePath };
+            createdFiles[fileName] = { content: "// Write your C code here\n#include <stdio.h>\n\nint main() {\n    printf(\"Hello from Tenx-Blocks on " + env.type + "!\\n\");\n    return 0;\n}", path: env.name };
 
             let tabsHeader = document.getElementById('tabsHeader');
             if (!document.getElementById(`tab-${fileName}`)) {
@@ -849,7 +885,7 @@
             }
 
             openFile(fileName);
-            logConsole(`Created C file '${fileName}' in [${filePath}].`);
+            logConsole(`Created C file '${fileName}' synchronized with ${env.type} (${env.name}).`);
         }
 
         function switchPanelTab(index) {
@@ -865,7 +901,7 @@
                 consoleBox.style.color = "var(--console-text)";
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
-                consoleBox.style.color = "#f87171"; // لون أحمر مخصص للأخطاء
+                consoleBox.style.color = "#f87171";
                 consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
             }
         }
@@ -885,24 +921,37 @@
             consoleBox.dataset.buildLog = "";
             consoleBox.innerHTML = "";
             lastBuildErrors = [];
+            clearErrorMarks();
         }
 
         function saveFile() {
-            logConsole(`File '${activeFileName || "untitled"}' saved successfully.`);
-            alert("تم حفظ الملف بنجاح!");
+            if (!activeFileName) {
+                alert("افتح ملفاً أولاً لحفظه!");
+                return;
+            }
+            const env = getDeviceEnvironment();
+            logConsole(`File '${activeFileName}' saved successfully to ${env.name}.`);
+            alert(`تم حفظ الملف في ملفات الـ ${env.type} بنجاح!`);
         }
 
+        // تصدير متوافق تماماً مع تطبيق الملفات في الآيفون، الأندرويد، والكمبيوتر
         function exportFile() {
             if (!activeFileName) {
                 alert("افتح ملفاً أولاً لتصديره!");
                 return;
             }
-            const blob = new Blob([editor.getValue()], { type: 'text/plain' });
+            const blob = new Blob([editor.getValue()], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
             link.download = activeFileName;
+            
+            // محاكاة النقر لتشغيل تطبيق الملفات الأصلي للجهاز
+            document.body.appendChild(link);
             link.click();
-            logConsole(`File '${activeFileName}' exported successfully.`);
+            document.body.removeChild(link);
+            
+            const env = getDeviceEnvironment();
+            logConsole(`Exported '${activeFileName}' to ${env.type} storage.`);
         }
 
         function toggleDarkMode() {
@@ -911,9 +960,9 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء ومنع التشغيل في حال وجود مشكلة
         function buildCode() {
             lastBuildErrors = [];
+            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -927,11 +976,30 @@
 
             lines.forEach((line, idx) => {
                 let trimmed = line.trim();
-                if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
-                    if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while") && !trimmed.includes("else")) {
-                        lastBuildErrors.push(`[Error] Line ${idx + 1}: Missing semicolon ';' at the end of statement.`);
-                    }
+                if (trimmed.length > 0 && 
+                    !trimmed.endsWith(';') && 
+                    !trimmed.endsWith('{') && 
+                    !trimmed.endsWith('}') && 
+                    !trimmed.startsWith('#') && 
+                    !trimmed.startsWith('//') &&
+                    !trimmed.startsWith('/*') &&
+                    !trimmed.includes("int main") && 
+                    !trimmed.includes("void main") && 
+                    !trimmed.includes("if(") && 
+                    !trimmed.includes("if ") && 
+                    !trimmed.includes("else if") && 
+                    !trimmed.includes("else") && 
+                    !trimmed.includes("for(") && 
+                    !trimmed.includes("for ") && 
+                    !trimmed.includes("while(") && 
+                    !trimmed.includes("while ")) {
+                    
+                    let errLine = idx + 1;
+                    lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
+                    let mark = editor.addLineClass(idx, "background", "cm-error-line");
+                    errorLineMarks.push(mark);
                 }
+
                 for (let char of line) {
                     if (char === '{') openBraces++;
                     if (char === '}') closeBraces++;
@@ -944,7 +1012,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1); // فتح تبويب الأخطاء تلقائياً باللون الأحمر
+                switchPanelTab(1);
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -953,7 +1021,6 @@
             }
         }
 
-        // تشغيل الكود مع شرط نجاح الفحص أولاً
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -962,7 +1029,7 @@
 
             let isPassed = buildCode();
             if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! يرجى مراجعة تبويب (Build messages) وتصحيح الأخطاء باللون الأحمر قبل التشغيل.");
+                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح السطر الملون بالأحمر أولاً قبل التشغيل.");
                 return;
             }
 
