@@ -74,19 +74,6 @@
             flex-shrink: 0;
         }
 
-        .brand-brand-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .brand-logo {
-            width: 22px;
-            height: 22px;
-            object-fit: cover;
-            border-radius: 4px;
-        }
-
         .brand-title {
             font-size: 14px;
             font-weight: 700;
@@ -306,6 +293,7 @@
             -webkit-user-select: text !important;
         }
 
+        /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
         .cm-error-line {
             background-color: rgba(239, 68, 68, 0.22) !important;
         }
@@ -313,7 +301,7 @@
             background-color: rgba(239, 68, 68, 0.38) !important;
         }
 
-        /* Syntax Highlighting */
+        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
         .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
         .cm-s-default .cm-def { color: #0f172a !important; font-weight: bold; }
         .cm-s-default .cm-variable { color: #1f2937 !important; }
@@ -341,7 +329,7 @@
             border-left: 2px solid #38bdf8 !important;
         }
 
-        /* Keyboard Symbols Bar */
+        /* شريط الأقواس الثابت فوق كيبورد الموبايل والتطبيق */
         .keyboard-symbols-bar {
             display: none;
             position: fixed;
@@ -498,10 +486,7 @@
 
     <!-- Brand Header -->
     <div class="brand-header">
-        <div class="brand-brand-container">
-            <img src="https://scontent.fcai20-6.fna.fbcdn.net/v/t39.30808-6/480838186_122143048800269376_8494050269098748834_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a7&_nc_ohc=8x2fW20G1J0Q7kNvgHb0w3m&_nc_zt=28&_nc_ht=scontent.fcai20-6.fna.fbcdn.net&oh=00_AYC..." class="brand-logo" alt="Logo">
-            <div class="brand-title">Tenx-Blocks - C Edition</div>
-        </div>
+        <div class="brand-title">Tenx-Blocks - C Edition</div>
         <button class="theme-toggle-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
     </div>
 
@@ -651,7 +636,7 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
-        let errorLineMarks = [];
+        let errorLineMarks = []; // لتخزين علامات الأخطاء على الأسطر
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -738,6 +723,7 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
+            // مسح التلوين الأحمر فوراً بمجرد تعديل الكود ليبدأ الفحص من جديد بذكاء
             clearErrorMarks();
         });
 
@@ -895,7 +881,7 @@
                 consoleBox.style.color = "var(--console-text)";
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
-                consoleBox.style.color = "#f87171";
+                consoleBox.style.color = "#f87171"; // لون أحمر مخصص للأخطاء
                 consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
             }
         }
@@ -945,7 +931,7 @@
         // فحص الأخطاء بدقة تامة وتحديث التلوين ديناميكياً
         function buildCode() {
             lastBuildErrors = [];
-            clearErrorMarks();
+            clearErrorMarks(); // مسح العلامات القديمة تماماً قبل بدء الفحص الجديد
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -960,6 +946,7 @@
             lines.forEach((line, idx) => {
                 let trimmed = line.trim();
                 
+                // فحص الأسطر التي تحتاج ';' بذكاء (تتجاهل الفراغات، السطور الفارغة، المكتبات، الأقواس، وبدايات الدوال)
                 if (trimmed.length > 0 && 
                     !trimmed.endsWith(';') && 
                     !trimmed.endsWith('{') && 
@@ -980,6 +967,8 @@
                     
                     let errLine = idx + 1;
                     lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
+                    
+                    // تلوين السطر الفعلي باللون الأحمر داخل المحرر
                     let mark = editor.addLineClass(idx, "background", "cm-error-line");
                     errorLineMarks.push(mark);
                 }
@@ -996,7 +985,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1);
+                switchPanelTab(1); // فتح تبويب رسائل الأخطاء تلقائياً
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -1005,7 +994,7 @@
             }
         }
 
-        // تشغيل الكود مع فحص ديناميكي
+        // تشغيل الكود مع فحص ديناميكي يضمن السماح بالتشغيل فور إصلاح الأخطاء
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
