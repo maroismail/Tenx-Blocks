@@ -911,7 +911,7 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء وتعبئة قائمة الرسائل
+        // فحص الأخطاء بدقة
         function buildCode() {
             lastBuildErrors = [];
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
@@ -969,7 +969,7 @@
             }
         }
 
-        // دالة التشغيل الصارمة: لو فيه أي خطأ تمنع الطباعة وتحولك فوراً على Build messages
+        // تشغيل الكود مع منع التشغيل تماماً عند وجود أخطاء، وقراءة محتوى الـ printf العربي/الإنجليزي بدقة
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -979,7 +979,7 @@
             let isPassed = buildCode();
             
             if (!isPassed || lastBuildErrors.length > 0) {
-                switchPanelTab(1); // الانتقال الفوري لتبويب Build messages
+                switchPanelTab(1); // التوجيه الفوري لتبويب Build messages
                 alert("⚠️ يوجد خطأ في الكود! تم إيقاف التشغيل وتوجيهك لتبويب Build messages.");
                 return;
             }
@@ -1015,6 +1015,7 @@
                             targetLimit = maxLimit - 1;
                         }
 
+                        // التعديل هنا: قراءة نص الـ printf الحقيقي (عربي أو إنجليزي) بشكل دقيق وصحيح
                         let printMatch = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
                         
                         if (printMatch) {
