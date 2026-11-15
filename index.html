@@ -911,7 +911,7 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء وعرضها في تبويب Build messages بحرية تامة
+        // فحص الأخطاء وتعبئة قائمة الرسائل
         function buildCode() {
             lastBuildErrors = [];
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
@@ -961,21 +961,28 @@
             }
 
             if (lastBuildErrors.length > 0) {
-                logConsole(`Build completed with ${lastBuildErrors.length} message(s) in Build messages.`);
+                logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
+                return false;
             } else {
                 logConsole("Build succeeded (0 errors). Ready.");
+                return true;
             }
-            return true;
         }
 
-        // تشغيل الكود مع الفهم الدقيق لحلقات التكرار (for / while)
+        // دالة التشغيل الصارمة: لو فيه أي خطأ تمنع الطباعة وتحولك فوراً على Build messages
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
                 return;
             }
 
-            buildCode();
+            let isPassed = buildCode();
+            
+            if (!isPassed || lastBuildErrors.length > 0) {
+                switchPanelTab(1); // الانتقال الفوري لتبويب Build messages
+                alert("⚠️ يوجد خطأ في الكود! تم إيقاف التشغيل وتوجيهك لتبويب Build messages.");
+                return;
+            }
 
             const codeText = editor.getValue();
             const cmdModal = document.getElementById('cmdModal');
