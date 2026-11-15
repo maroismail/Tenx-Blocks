@@ -74,6 +74,19 @@
             flex-shrink: 0;
         }
 
+        .brand-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-logo {
+            width: 22px;
+            height: 22px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
         .brand-title {
             font-size: 14px;
             font-weight: 700;
@@ -268,7 +281,7 @@
         .action-icon { font-size: 24px; }
         .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        /* CodeMirror Custom Styling */
+        /* CodeMirror Custom Styling & Error Line Highlighting */
         .editor-wrapper {
             flex: 1;
             display: none;
@@ -293,7 +306,14 @@
             -webkit-user-select: text !important;
         }
 
-        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
+        .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.22) !important;
+        }
+        body.dark-mode .cm-error-line {
+            background-color: rgba(239, 68, 68, 0.38) !important;
+        }
+
+        /* Syntax Highlighting */
         .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
         .cm-s-default .cm-def { color: #0f172a !important; font-weight: bold; }
         .cm-s-default .cm-variable { color: #1f2937 !important; }
@@ -321,7 +341,7 @@
             border-left: 2px solid #38bdf8 !important;
         }
 
-        /* شريط الأقواس الثابت فوق كيبورد الموبايل والتطبيق */
+        /* Keyboard Symbols Bar */
         .keyboard-symbols-bar {
             display: none;
             position: fixed;
@@ -478,7 +498,10 @@
 
     <!-- Brand Header -->
     <div class="brand-header">
-        <div class="brand-title">Tenx-Blocks - C Edition</div>
+        <div class="brand-brand-container">
+            <img src="https://scontent.fcai20-6.fna.fbcdn.net/v/t39.30808-6/480838186_122143048800269376_8494050269098748834_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a7&_nc_ohc=8x2fW20G1J0Q7kNvgHb0w3m&_nc_zt=28&_nc_ht=scontent.fcai20-6.fna.fbcdn.net&oh=00_AYC..." class="brand-logo" alt="Logo">
+            <div class="brand-title">Tenx-Blocks - C Edition</div>
+        </div>
         <button class="theme-toggle-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
     </div>
 
@@ -628,6 +651,7 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
+        let errorLineMarks = [];
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -714,7 +738,13 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
+            clearErrorMarks();
         });
+
+        function clearErrorMarks() {
+            errorLineMarks.forEach(mark => mark.clear());
+            errorLineMarks = [];
+        }
 
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
@@ -865,7 +895,7 @@
                 consoleBox.style.color = "var(--console-text)";
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
-                consoleBox.style.color = "#f87171"; // لون أحمر مخصص للأخطاء
+                consoleBox.style.color = "#f87171";
                 consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
             }
         }
@@ -885,6 +915,7 @@
             consoleBox.dataset.buildLog = "";
             consoleBox.innerHTML = "";
             lastBuildErrors = [];
+            clearErrorMarks();
         }
 
         function saveFile() {
@@ -911,9 +942,10 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء ومنع التشغيل في حال وجود مشكلة
+        // فحص الأخطاء بدقة تامة وتحديث التلوين ديناميكياً
         function buildCode() {
             lastBuildErrors = [];
+            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -927,11 +959,31 @@
 
             lines.forEach((line, idx) => {
                 let trimmed = line.trim();
-                if (trimmed.length > 0 && !trimmed.endsWith(';') && !trimmed.endsWith('{') && !trimmed.endsWith('}') && !trimmed.startsWith('#') && !trimmed.startsWith('//')) {
-                    if (!trimmed.includes("main") && !trimmed.includes("if") && !trimmed.includes("for") && !trimmed.includes("while") && !trimmed.includes("else")) {
-                        lastBuildErrors.push(`[Error] Line ${idx + 1}: Missing semicolon ';' at the end of statement.`);
-                    }
+                
+                if (trimmed.length > 0 && 
+                    !trimmed.endsWith(';') && 
+                    !trimmed.endsWith('{') && 
+                    !trimmed.endsWith('}') && 
+                    !trimmed.startsWith('#') && 
+                    !trimmed.startsWith('//') &&
+                    !trimmed.startsWith('/*') &&
+                    !trimmed.includes("int main") && 
+                    !trimmed.includes("void main") && 
+                    !trimmed.includes("if(") && 
+                    !trimmed.includes("if ") && 
+                    !trimmed.includes("else if") && 
+                    !trimmed.includes("else") && 
+                    !trimmed.includes("for(") && 
+                    !trimmed.includes("for ") && 
+                    !trimmed.includes("while(") && 
+                    !trimmed.includes("while ")) {
+                    
+                    let errLine = idx + 1;
+                    lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
+                    let mark = editor.addLineClass(idx, "background", "cm-error-line");
+                    errorLineMarks.push(mark);
                 }
+
                 for (let char of line) {
                     if (char === '{') openBraces++;
                     if (char === '}') closeBraces++;
@@ -944,7 +996,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1); // فتح تبويب الأخطاء تلقائياً باللون الأحمر
+                switchPanelTab(1);
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -953,7 +1005,7 @@
             }
         }
 
-        // تشغيل الكود مع شرط نجاح الفحص أولاً
+        // تشغيل الكود مع فحص ديناميكي
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -962,7 +1014,7 @@
 
             let isPassed = buildCode();
             if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! يرجى مراجعة تبويب (Build messages) وتصحيح الأخطاء باللون الأحمر قبل التشغيل.");
+                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح السطر الملون بالأحمر أولاً قبل التشغيل.");
                 return;
             }
 
