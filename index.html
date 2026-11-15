@@ -268,7 +268,7 @@
         .action-icon { font-size: 24px; }
         .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        /* CodeMirror Custom Styling & Error Line Highlighting */
+        /* CodeMirror Custom Styling */
         .editor-wrapper {
             flex: 1;
             display: none;
@@ -293,15 +293,7 @@
             -webkit-user-select: text !important;
         }
 
-        /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
-        .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.22) !important;
-        }
-        body.dark-mode .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.38) !important;
-        }
-
-        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
+        /* Syntax Highlighting */
         .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
         .cm-s-default .cm-def { color: #0f172a !important; font-weight: bold; }
         .cm-s-default .cm-variable { color: #1f2937 !important; }
@@ -329,7 +321,7 @@
             border-left: 2px solid #38bdf8 !important;
         }
 
-        /* شريط الأقواس الثابت فوق كيبورد الموبايل والتطبيق */
+        /* Keyboard Symbols Bar */
         .keyboard-symbols-bar {
             display: none;
             position: fixed;
@@ -493,7 +485,7 @@
     <!-- Top Menu Bar -->
     <div class="menu-bar">
         <div class="menu-item" onclick="startNewFileWizard()">File</div>
-        <div class="menu-item">Edit</div>
+        <div class="menu-item" onclick="alert('Edit mode ready.')">Edit</div>
         <div class="menu-item" onclick="startNewFileWizard()">Project</div>
         <div class="menu-item" onclick="buildCode()">Build</div>
         <div class="menu-item" onclick="runCode()">Debug</div>
@@ -636,7 +628,6 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
-        let errorLineMarks = []; // لتخزين علامات الأخطاء على الأسطر
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -723,13 +714,7 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
-            clearErrorMarks();
         });
-
-        function clearErrorMarks() {
-            errorLineMarks.forEach(mark => mark.clear());
-            errorLineMarks = [];
-        }
 
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
@@ -900,7 +885,6 @@
             consoleBox.dataset.buildLog = "";
             consoleBox.innerHTML = "";
             lastBuildErrors = [];
-            clearErrorMarks();
         }
 
         function saveFile() {
@@ -927,10 +911,9 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء وعرضها في تبويب Build messages بدون وضع خطوط حمراء في الكود
+        // فحص الأخطاء وعرضها في تبويب Build messages بحرية تامة
         function buildCode() {
             lastBuildErrors = [];
-            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -979,15 +962,13 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build completed with ${lastBuildErrors.length} message(s) in Build messages.`);
-                switchPanelTab(1);
             } else {
                 logConsole("Build succeeded (0 errors). Ready.");
-                switchPanelTab(0);
             }
             return true;
         }
 
-        // دالة التشغيل الذكية والفهمانة لقراءة أي رقم في حلقات التكرار بدقة تامة
+        // تشغيل الكود مع الفهم الدقيق لحلقات التكرار (for / while)
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -1012,26 +993,20 @@
                 setTimeout(() => {
                     let outputs = [];
                     
-                    // تحليل كود الـ for أو while واستخراج الحد الأقصى بذكاء (سواء <50 أو <=50 أو <60 أو <100 إلخ)
                     if (codeText.includes("for") || codeText.includes("while")) {
-                        // البحث عن عامل المقارنة والرقم الذي يليه مباشرة (مثل < 60 أو <= 50)
                         let conditionMatch = codeText.match(/(?:<|<=)\s*([0-9]+)/);
                         let maxLimit = conditionMatch ? parseInt(conditionMatch[1]) : 10;
                         
-                        // التحقق مما إذا كان الشرط أصغر من فقط (<) أم أصغر من أو يساوي (<=)
                         let isLessThanOrEqual = codeText.includes("<=");
                         let isStrictlyLessThan = codeText.includes("<") && !isLessThanOrEqual;
 
-                        // تحديد نقطة البداية (عادةً i = 0 أو i = 1)
                         let startMatch = codeText.match(/(?:int\s+)?([a-zA-Z0-9_]+)\s*=\s*([0-9]+)/);
                         let startVal = startMatch ? parseInt(startMatch[2]) : 1;
 
-                        // حساب العدد الحقيقي للتكرارات بدقة متناهية
                         let targetLimit = maxLimit;
                         if (isStrictlyLessThan) {
-                            targetLimit = maxLimit - 1; // لو < 60 يبقى آخره 59
+                            targetLimit = maxLimit - 1;
                         }
-                        // لو <= 60 يبقى آخره 60 زي ما كاتبها بالضبط
 
                         let printMatch = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
                         
@@ -1067,7 +1042,7 @@
             } catch (err) {
                 cmdBody.innerHTML = `<span style="color: #f87171;">Error in ${activeFileName}: ${err.message}</span>`;
                 logConsole(`Error: ${err.message}`);
-                statusText.innerText = "Status: Ready`;
+                statusText.innerText = "Status: Ready";
             }
         }
 
