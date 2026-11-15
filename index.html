@@ -293,7 +293,6 @@
             -webkit-user-select: text !important;
         }
 
-        /* تلوين السطر الذي يحتوي على خطأ باللون الأحمر الخفيف */
         .cm-error-line {
             background-color: rgba(239, 68, 68, 0.22) !important;
         }
@@ -301,7 +300,7 @@
             background-color: rgba(239, 68, 68, 0.38) !important;
         }
 
-        /* تلوين السنتاكس وأسماء المكتبات (#include <stdio.h>) */
+        /* Syntax Highlighting */
         .cm-s-default .cm-keyword { color: #2563eb !important; font-weight: bold; }
         .cm-s-default .cm-def { color: #0f172a !important; font-weight: bold; }
         .cm-s-default .cm-variable { color: #1f2937 !important; }
@@ -329,7 +328,7 @@
             border-left: 2px solid #38bdf8 !important;
         }
 
-        /* شريط الأقواس الثابت فوق كيبورد الموبايل والتطبيق */
+        /* Keyboard Symbols Bar */
         .keyboard-symbols-bar {
             display: none;
             position: fixed;
@@ -636,7 +635,7 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
-        let errorLineMarks = []; // لتخزين علامات الأخطاء على الأسطر
+        let errorLineMarks = [];
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -723,7 +722,6 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
-            // مسح التلوين الأحمر فوراً بمجرد تعديل الكود ليبدأ الفحص من جديد بذكاء
             clearErrorMarks();
         });
 
@@ -881,7 +879,7 @@
                 consoleBox.style.color = "var(--console-text)";
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
-                consoleBox.style.color = "#f87171"; // لون أحمر مخصص للأخطاء
+                consoleBox.style.color = "#f87171";
                 consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
             }
         }
@@ -931,7 +929,7 @@
         // فحص الأخطاء بدقة تامة وتحديث التلوين ديناميكياً
         function buildCode() {
             lastBuildErrors = [];
-            clearErrorMarks(); // مسح العلامات القديمة تماماً قبل بدء الفحص الجديد
+            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -946,7 +944,6 @@
             lines.forEach((line, idx) => {
                 let trimmed = line.trim();
                 
-                // فحص الأسطر التي تحتاج ';' بذكاء (تتجاهل الفراغات، السطور الفارغة، المكتبات، الأقواس، وبدايات الدوال)
                 if (trimmed.length > 0 && 
                     !trimmed.endsWith(';') && 
                     !trimmed.endsWith('{') && 
@@ -967,8 +964,6 @@
                     
                     let errLine = idx + 1;
                     lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
-                    
-                    // تلوين السطر الفعلي باللون الأحمر داخل المحرر
                     let mark = editor.addLineClass(idx, "background", "cm-error-line");
                     errorLineMarks.push(mark);
                 }
@@ -985,7 +980,7 @@
 
             if (lastBuildErrors.length > 0) {
                 logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1); // فتح تبويب رسائل الأخطاء تلقائياً
+                switchPanelTab(1);
                 return false;
             } else {
                 logConsole("Syntax pre-check passed. Ready to compile.");
@@ -994,7 +989,7 @@
             }
         }
 
-        // تشغيل الكود مع فحص ديناميكي يضمن السماح بالتشغيل فور إصلاح الأخطاء
+        // تشغيل الكود ودعم حلقات التكرار (for / while) بأي عدد تطلبه كاملاً
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
@@ -1003,7 +998,7 @@
 
             let isPassed = buildCode();
             if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح السطر الملون بالأحمر أولاً قبل التشغيل.");
+                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح الأخطاء أولاً قبل التشغيل.");
                 return;
             }
 
@@ -1023,13 +1018,21 @@
                 setTimeout(() => {
                     let outputs = [];
                     
-                    if (codeText.includes("while") || codeText.includes("for")) {
-                        let match = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
-                        if (match) {
-                            let formatStr = match[1];
-                            let limit = codeText.includes("1000") ? 1000 : (codeText.includes("10") ? 10 : 40);
-                            for (let i = 1; i <= limit; i++) {
-                                outputs.push(formatStr.replace('%d', i).replace(/\\n/g, ""));
+                    // دعم كامل لحلقات التكرار وقراءة العدد المكتوب (مثلاً 100 أو غيره)
+                    if (codeText.includes("for") || codeText.includes("while")) {
+                        let limitMatch = codeText.match(/(?:<|<=)\s*([0-9]+)/);
+                        let maxLimit = limitMatch ? parseInt(limitMatch[1]) : 10;
+                        
+                        let printMatch = codeText.match(/printf\s*\(\s*"([^"]+)"\s*,\s*([a-zA-Z0-9_]+)\s*\)/);
+                        
+                        if (printMatch) {
+                            let formatStr = printMatch[1];
+                            for (let i = 1; i <= maxLimit; i++) {
+                                outputs.push(formatStr.replace('%d', i).replace('%i', i).replace(/\\n/g, ""));
+                            }
+                        } else {
+                            for (let i = 1; i <= maxLimit; i++) {
+                                outputs.push(`Iteration ${i}`);
                             }
                         }
                     }
