@@ -268,7 +268,7 @@
         .action-icon { font-size: 24px; }
         .action-title { font-weight: 600; color: var(--accent-color); font-size: 12px; }
 
-        /* CodeMirror Custom Styling & Error Line Highlighting */
+        /* CodeMirror Custom Styling (بدون أي خطوط حمراء في الكود) */
         .editor-wrapper {
             flex: 1;
             display: none;
@@ -291,13 +291,6 @@
             padding-bottom: 50px;
             user-select: text !important;
             -webkit-user-select: text !important;
-        }
-
-        .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.22) !important;
-        }
-        body.dark-mode .cm-error-line {
-            background-color: rgba(239, 68, 68, 0.38) !important;
         }
 
         /* Syntax Highlighting */
@@ -635,7 +628,6 @@
         let activeFileName = null;
         let lastBuildErrors = [];
         let activePanelTab = 0;
-        let errorLineMarks = [];
 
         const cKeywords = [
             "#include <stdio.h>",
@@ -722,13 +714,7 @@
             if (activeFileName) {
                 createdFiles[activeFileName].content = editor.getValue();
             }
-            clearErrorMarks();
         });
-
-        function clearErrorMarks() {
-            errorLineMarks.forEach(mark => mark.clear());
-            errorLineMarks = [];
-        }
 
         function syncSymbolsBarPosition() {
             const symbolsBar = document.getElementById('keyboardSymbolsBar');
@@ -880,7 +866,7 @@
                 consoleBox.innerHTML = consoleBox.dataset.buildLog || "Tenx-Blocks C Edition initialized successfully. Ready.";
             } else {
                 consoleBox.style.color = "#f87171";
-                consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No syntax or build messages found." : lastBuildErrors.join("\n");
+                consoleBox.innerHTML = lastBuildErrors.length === 0 ? "No build messages or syntax errors found." : lastBuildErrors.join("\n");
             }
         }
 
@@ -899,7 +885,6 @@
             consoleBox.dataset.buildLog = "";
             consoleBox.innerHTML = "";
             lastBuildErrors = [];
-            clearErrorMarks();
         }
 
         function saveFile() {
@@ -926,10 +911,9 @@
             document.querySelector('.theme-toggle-btn').innerHTML = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
         }
 
-        // فحص الأخطاء بدقة تامة وتحديث التلوين ديناميكياً
+        // فحص الأخطاء وعرضها في تبويب Build messages بدون إعاقة التشغيل أو إظهار خطوط حمراء
         function buildCode() {
             lastBuildErrors = [];
-            clearErrorMarks();
             logConsole(`-------------- Build: GCC Compiler (C) --------------`);
             
             if (!activeFileName) {
@@ -963,9 +947,7 @@
                     !trimmed.includes("while ")) {
                     
                     let errLine = idx + 1;
-                    lastBuildErrors.push(`[Error] Line ${errLine}: Missing semicolon ';' at the end of statement.`);
-                    let mark = editor.addLineClass(idx, "background", "cm-error-line");
-                    errorLineMarks.push(mark);
+                    lastBuildErrors.push(`[Warning/Error] Line ${errLine}: Missing semicolon ';' or syntax notice.`);
                 }
 
                 for (let char of line) {
@@ -979,28 +961,23 @@
             }
 
             if (lastBuildErrors.length > 0) {
-                logConsole(`Build failed with ${lastBuildErrors.length} error(s).`);
-                switchPanelTab(1);
-                return false;
+                logConsole(`Build completed with ${lastBuildErrors.length} message(s) in Build messages.`);
             } else {
-                logConsole("Syntax pre-check passed. Ready to compile.");
-                switchPanelTab(0);
-                return true;
+                logConsole("Build succeeded (0 errors). Ready.");
             }
+            
+            switchPanelTab(0);
+            return true; // البيلد بيتم دايماً وبحرية من غير ما يقف
         }
 
-        // تشغيل الكود ودعم حلقات التكرار (for / while) بأي عدد تطلبه كاملاً
+        // تشغيل الكود ودعم حلقات التكرار (for / while) بالعدد الكامل
         async function runCode() {
             if (!activeFileName) {
                 alert("اختر ملفاً أولاً لتشغيله!");
                 return;
             }
 
-            let isPassed = buildCode();
-            if (!isPassed) {
-                alert("⚠️ يوجد أخطاء في الكود! يرجى تصحيح الأخطاء أولاً قبل التشغيل.");
-                return;
-            }
+            buildCode(); // تسجيل الرسائل في الخلفية وتحديث اللوج من غير ما يعطل التشغيل
 
             const codeText = editor.getValue();
             const cmdModal = document.getElementById('cmdModal');
@@ -1018,7 +995,6 @@
                 setTimeout(() => {
                     let outputs = [];
                     
-                    // دعم كامل لحلقات التكرار وقراءة العدد المكتوب (مثلاً 100 أو غيره)
                     if (codeText.includes("for") || codeText.includes("while")) {
                         let limitMatch = codeText.match(/(?:<|<=)\s*([0-9]+)/);
                         let maxLimit = limitMatch ? parseInt(limitMatch[1]) : 10;
@@ -1048,7 +1024,7 @@
 
                     cmdBody.innerHTML = `<span style="color: #64748b;">[File: ${activeFileName}]</span>\n\n`;
                     cmdBody.innerHTML += `<span style="color: #38bdf8; font-weight: bold;">${finalOut}</span>\n\n`;
-                    cmdBody.innerHTML += `<span style="color: #94a3b8;">--- Execution Finished (0 errors) ---</span>`;
+                    cmdBody.innerHTML += `<span style="color: #94a3b8;">--- Execution Finished ---</span>`;
 
                     logConsole("Execution completed successfully.");
                     statusText.innerText = "Status: Ready";
